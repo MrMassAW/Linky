@@ -24,7 +24,11 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 let n = 0;
 const shot = async (name) => SHOTS && page.screenshot({ path: `${SHOTS}/${String(++n).padStart(2, '0')}-${name}.png` });
-const step = (s) => console.log(`• ${s}`);
+let lastStep = '';
+const step = (s) => {
+  lastStep = s;
+  console.log(`• ${s}`);
+};
 const click = (name, opts = {}) => page.getByRole('button', { name, ...opts }).first().click();
 
 // Synthetic 12 MP test photos rendered in the browser, so the test needs no fixtures.
@@ -156,9 +160,8 @@ try {
   await page.getByLabel('Note').fill('Hi! Your prompt about Sundays sold me.');
   await click('Send note');
   await page.locator('text=/Hi! Your prompt/').waitFor();
-  await page.waitForTimeout(6000);
-  const noteCount = await page.locator('.whitespace-pre-wrap').count();
-  if (noteCount < 2) throw new Error('bot did not reply');
+  // the demo bot replies a few seconds later; the page refreshes notes on an interval
+  await page.locator('.whitespace-pre-wrap').nth(1).waitFor({ timeout: 20_000 });
 
   step('mutual Connect reveals handles + deep links');
   await click('🔗 Connect');
@@ -191,7 +194,7 @@ try {
   step('admin queue');
   await page.goto(`${BASE}/me/settings`);
   await page.getByRole('switch', { name: /Admin mode/ }).click();
-  await page.goto(`${BASE}/admin`);
+  await page.getByRole('link', { name: 'Open admin report queue' }).click(); // appears once admin mode is saved
   await page.getByText('reported by Robin').waitFor();
   await shot('admin');
 
@@ -204,7 +207,10 @@ try {
   console.log('\nE2E demo flow passed ✔');
 } catch (e) {
   await shot('failure');
+  const detail = `${e.message.split('\n')[0]}${errors.length ? ` | page errors: ${errors.join(' | ')}` : ''}`;
   console.error('\nE2E failed:', e.message, errors.length ? `\npage errors: ${errors.join(' | ')}` : '');
+  // GitHub annotation so the failure is visible without opening the raw log
+  if (process.env.GITHUB_ACTIONS) console.log(`::error title=E2E demo flow (step: ${lastStep})::${detail}`);
   process.exitCode = 1;
 } finally {
   await browser.close();
