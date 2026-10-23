@@ -85,6 +85,9 @@ export interface Backend {
   requestDeletion(): Promise<void>;
   cancelDeletion(): Promise<void>;
   exportData(): Promise<unknown>;
+
+  // push (real backend only)
+  registerPushToken?(token: string): Promise<void>;
 }
 
 /** Extra controls only the mock backend offers (Settings → Demo tools). */

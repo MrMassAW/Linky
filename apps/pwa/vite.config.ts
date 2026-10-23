@@ -3,34 +3,52 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { createReadStream, readFileSync, readdirSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Plugin } from 'vite';
 
-// Self-host the MediaPipe WASM runtime at /mediapipe/ (served from node_modules in dev,
-// emitted into dist on build) so the face check needs no third-party CDN.
-function mediapipeWasm(): Plugin {
-  const dir = join(dirname(createRequire(import.meta.url).resolve('@mediapipe/tasks-vision')), 'wasm');
-  const files = readdirSync(dir).filter((f) => f.startsWith('vision_wasm_internal') || f.startsWith('vision_wasm_nosimd_internal'));
+const pkgDir = (name: string) => fileURLToPath(new URL(`./node_modules/${name}`, import.meta.url));
+
+// Self-host third-party runtime files (served from node_modules in dev, emitted into
+// dist on build) so the face check and push service worker need no third-party CDN:
+//   /mediapipe/  MediaPipe Tasks WASM runtime
+//   /firebase/   Firebase compat bundles for public/firebase-messaging-sw.js
+function vendorAssets(): Plugin {
+  const groups = [
+    {
+      prefix: 'mediapipe',
+      dir: join(pkgDir('@mediapipe/tasks-vision'), 'wasm'),
+      match: (f: string) => /^vision_wasm_(nosimd_)?internal\.(js|wasm)$/.test(f),
+    },
+    {
+      prefix: 'firebase',
+      dir: pkgDir('firebase'),
+      match: (f: string) => f === 'firebase-app-compat.js' || f === 'firebase-messaging-compat.js',
+    },
+  ].map((g) => ({ ...g, files: readdirSync(g.dir).filter(g.match) }));
   return {
-    name: 'linky-mediapipe-wasm',
+    name: 'linky-vendor-assets',
     configureServer(server) {
-      server.middlewares.use('/mediapipe', (req, res, next) => {
-        const file = files.find((f) => req.url === `/${f}`);
-        if (!file) return next();
-        res.setHeader('Content-Type', file.endsWith('.wasm') ? 'application/wasm' : 'text/javascript');
-        createReadStream(join(dir, file)).pipe(res);
-      });
+      for (const g of groups) {
+        server.middlewares.use(`/${g.prefix}`, (req, res, next) => {
+          const file = g.files.find((f) => req.url === `/${f}`);
+          if (!file) return next();
+          res.setHeader('Content-Type', file.endsWith('.wasm') ? 'application/wasm' : 'text/javascript');
+          createReadStream(join(g.dir, file)).pipe(res);
+        });
+      }
     },
     generateBundle() {
-      for (const f of files) this.emitFile({ type: 'asset', fileName: `mediapipe/${f}`, source: readFileSync(join(dir, f)) });
+      for (const g of groups) {
+        for (const f of g.files) this.emitFile({ type: 'asset', fileName: `${g.prefix}/${f}`, source: readFileSync(join(g.dir, f)) });
+      }
     },
   };
 }
 
 export default defineConfig({
   plugins: [
-    mediapipeWasm(),
+    vendorAssets(),
     react(),
     tailwindcss(),
     VitePWA({
@@ -56,7 +74,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // ML code/weights (TensorFlow.js, NSFW model, MediaPipe) load on demand and are
         // cached at runtime instead of bloating the install.
-        globIgnores: ['**/mediapipe/**', '**/group1-shard*', '**/model.min-*', '**/dist-*', '**/vision_bundle-*', '**/nsfw*', '**/tfjs*'],
+        globIgnores: ['**/mediapipe/**', '**/firebase/**', '**/firebase-messaging-sw.js', '**/group1-shard*', '**/model.min-*', '**/dist-*', '**/vision_bundle-*', '**/nsfw*', '**/tfjs*'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         navigateFallback: '/index.html',
         runtimeCaching: [

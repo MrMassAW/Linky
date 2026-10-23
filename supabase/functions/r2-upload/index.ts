@@ -10,15 +10,19 @@
 import { AwsClient } from 'npm:aws4fetch@1';
 import { HttpError, handle, json, requireUser, serviceClient } from '../_shared/supabase.ts';
 
-const ACCOUNT_ID = Deno.env.get('R2_ACCOUNT_ID')!;
+const ACCOUNT_ID = Deno.env.get('R2_ACCOUNT_ID');
 const BUCKET = Deno.env.get('R2_BUCKET') ?? 'linky-photos';
-const PUBLIC_BASE = Deno.env.get('R2_PUBLIC_BASE_URL')!; // e.g. https://photos.linky.app
-const r2 = new AwsClient({
-  accessKeyId: Deno.env.get('R2_ACCESS_KEY_ID')!,
-  secretAccessKey: Deno.env.get('R2_SECRET_ACCESS_KEY')!,
-  service: 's3',
-  region: 'auto',
-});
+const PUBLIC_BASE = Deno.env.get('R2_PUBLIC_BASE_URL'); // e.g. https://photos.linky.app
+const R2_ENABLED = Boolean(ACCOUNT_ID && Deno.env.get('R2_ACCESS_KEY_ID'));
+// Without R2 secrets the function still runs "purge" against Supabase Storage.
+const r2 = R2_ENABLED
+  ? new AwsClient({
+      accessKeyId: Deno.env.get('R2_ACCESS_KEY_ID')!,
+      secretAccessKey: Deno.env.get('R2_SECRET_ACCESS_KEY')!,
+      service: 's3',
+      region: 'auto',
+    })
+  : null;
 const endpoint = `https://${ACCOUNT_ID}.r2.cloudflarestorage.com/${BUCKET}`;
 const ALLOWED = new Set(['image/avif', 'image/webp', 'image/jpeg']);
 const MAX_PHOTOS = 6;
@@ -38,13 +42,22 @@ Deno.serve(
         .lt('deletion_requested_at', cutoff);
       if (error) throw error;
       let objects = 0;
-      for (const { id } of doomed ?? []) objects += await deletePrefix(`photos/${id}/`);
+      for (const { id } of doomed ?? []) {
+        if (r2) objects += await deletePrefix(`photos/${id}/`);
+        // Supabase Storage fallback bucket (used before R2 is configured)
+        const { data: files } = await admin.storage.from('photos').list(id, { limit: 100 });
+        if (files?.length) {
+          await admin.storage.from('photos').remove(files.map((f) => `${id}/${f.name}`));
+          objects += files.length;
+        }
+      }
       const { data: purged, error: e2 } = await admin.rpc('purge_deleted_accounts');
       if (e2) throw e2;
       return json({ ok: true, accounts: purged, objects });
     }
 
     const { id: uid, client } = await requireUser(req);
+    if (!r2) throw new HttpError(501, 'R2 is not configured');
 
     if (body.action === 'sign') {
       if (!ALLOWED.has(body.contentType)) throw new HttpError(400, 'unsupported type');
@@ -73,6 +86,7 @@ Deno.serve(
 );
 
 async function deletePrefix(prefix: string): Promise<number> {
+  if (!r2) return 0;
   const res = await r2.fetch(`${endpoint}?list-type=2&prefix=${encodeURIComponent(prefix)}`);
   const xml = await res.text();
   const keys = [...xml.matchAll(/<Key>([^<]+)<\/Key>/g)].map((m) => m[1]);

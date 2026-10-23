@@ -376,4 +376,9 @@ export class SupabaseBackend implements Backend {
   exportData() {
     return this.rpc<unknown>('export_my_data');
   }
+
+  async registerPushToken(token: string) {
+    const id = await this.uid();
+    fail((await this.sb.from('push_tokens').upsert({ profile_id: id, token, platform: 'web' }, { onConflict: 'token' })).error);
+  }
 }

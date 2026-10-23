@@ -1,0 +1,8 @@
+/sw.js
+  Cache-Control: no-cache
+/firebase-messaging-sw.js
+  Cache-Control: no-cache
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+/mediapipe/*
+  Cache-Control: public, max-age=2592000

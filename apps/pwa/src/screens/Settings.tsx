@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Card, ErrorText, Header, Toggle, VerifiedBadge } from '../components/ui';
 import { hasDemoTools } from '../lib/backend';
+import { enablePush, pushConfigured } from '../lib/push';
 import { useMe, useSession } from '../state/session';
 
 export default function Settings() {
@@ -44,6 +45,26 @@ export default function Settings() {
             hint="You’re hidden from Discover. Existing matches stay."
             disabled={Boolean(me.deletion_requested_at)}
           />
+        </Card>
+
+        <Card>
+          <h3 className="text-lg font-semibold">Notifications</h3>
+          {backend.registerPushToken && pushConfigured() ? (
+            <>
+              <p className="mt-1 text-sm text-muted">Get a push when someone likes you, you match, or a note arrives.</p>
+              <Button
+                variant="secondary"
+                className="mt-3 w-full"
+                onClick={act(async () => backend.registerPushToken!(await enablePush()), 'Push notifications are on for this device.')}
+              >
+                Enable push notifications
+              </Button>
+            </>
+          ) : (
+            <p className="mt-1 text-sm text-muted">
+              Push notifications need the real backend with Firebase configured (see docs/SETUP.md).
+            </p>
+          )}
         </Card>
 
         <Card>
