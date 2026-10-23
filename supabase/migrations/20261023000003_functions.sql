@@ -525,3 +525,10 @@ language sql security definer set search_path = public, extensions as $$
   update profiles set location = st_setsrid(st_makepoint(round(p_lng::numeric, 2)::float8, round(p_lat::numeric, 2)::float8), 4326)::geography
   where id = public.require_uid();
 $$;
+
+-- Batch variant for the feed edge function.
+create or replace function public.matchable_json_many(p_ids uuid[]) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select coalesce(jsonb_agg(public.matchable_json(id)), '[]'::jsonb) from unnest(p_ids) as id;
+$$;
+revoke execute on function public.matchable_json_many(uuid[]) from public, anon, authenticated;
