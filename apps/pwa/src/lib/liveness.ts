@@ -9,7 +9,7 @@
 import type { FaceLandmarker, NormalizedLandmark } from '@mediapipe/tasks-vision';
 
 // WASM runtime is self-hosted by the build (see vite.config.ts); only the model comes from Google.
-const WASM_URL = '/mediapipe';
+const WASM_URL = `${import.meta.env.BASE_URL}mediapipe`;
 const MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
 

@@ -46,12 +46,19 @@ function vendorAssets(): Plugin {
   };
 }
 
+// LINKY_STATIC=1 builds a self-contained demo that runs from any folder or sandboxed
+// host: relative asset paths, hash routing, and no service worker.
+const STATIC = Boolean(process.env.LINKY_STATIC);
+
 export default defineConfig({
+  base: STATIC ? './' : '/',
+  define: { 'import.meta.env.VITE_HASH_ROUTER': JSON.stringify(STATIC ? 'true' : '') },
   plugins: [
     vendorAssets(),
     react(),
     tailwindcss(),
     VitePWA({
+      disable: STATIC,
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {

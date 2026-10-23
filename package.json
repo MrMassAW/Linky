@@ -11,7 +11,8 @@
     "test": "vitest run",
     "typecheck": "pnpm -r typecheck",
     "gen:seed-sql": "tsx scripts/gen-seed-sql.ts",
-    "sync:shared": "node scripts/sync-shared.mjs"
+    "sync:shared": "node scripts/sync-shared.mjs",
+    "build:static": "cd apps/pwa && LINKY_STATIC=1 vite build --outDir dist-static --emptyOutDir"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

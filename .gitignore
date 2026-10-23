@@ -9,3 +9,4 @@ supabase/.temp
 supabase/.branches
 coverage
 e2e-shots
+apps/pwa/dist-static

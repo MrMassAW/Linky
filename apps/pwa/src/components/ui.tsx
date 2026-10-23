@@ -239,7 +239,7 @@ export function XIcon({ className = 'h-6 w-6' }: { className?: string }) {
 export function Logo({ className = '' }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 font-display text-3xl font-semibold text-coral-500 ${className}`}>
-      <img src="/icon.svg" alt="" className="h-9 w-9" />
+      <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" className="h-9 w-9" />
       linky
     </span>
   );

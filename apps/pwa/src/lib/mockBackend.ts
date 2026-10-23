@@ -124,7 +124,7 @@ function demoToStored(d: DemoProfile, n: number): StoredProfile {
   const id = demoUuid(n + 1);
   const photos: Photo[] = Array.from({ length: 1 + d.scenes.length }, (_, i) => ({
     id: demoUuid(n + 1, 100 + i),
-    url: `/demo/${d.id}-${i}.svg`,
+    url: `${import.meta.env.BASE_URL ?? '/'}demo/${d.id}-${i}.svg`,
     position: i,
     nsfw_score: 0,
   }));
