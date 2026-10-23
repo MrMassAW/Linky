@@ -152,12 +152,15 @@ export function PersonalityResult({ p, compact }: { p: Pick<Personality, 'type' 
           const v = p[key];
           return (
             <div key={key}>
-              <div className="flex justify-between text-xs font-medium">
-                <span className={v >= 50 ? 'text-coral-600' : 'text-muted'}>{left} {v}%</span>
-                <span className={v < 50 ? 'text-coral-600' : 'text-muted'}>{100 - v}% {right}</span>
+              <div className="flex justify-between text-xs">
+                <span className={`text-coral-600 ${v >= 50 ? 'font-semibold' : 'opacity-70'}`}>{left} {v}%</span>
+                <span className={`text-plum-500 ${v < 50 ? 'font-semibold' : 'opacity-70'}`}>{100 - v}% {right}</span>
               </div>
-              <div className="mt-1 flex h-2 overflow-hidden rounded-full bg-plum-50">
-                <div className="bg-coral-400" style={{ width: `${v}%` }} />
+              {/* Two-sided gauge: each pole has its own colour, the tick marks the 50% midpoint. */}
+              <div className="relative mt-1 flex h-2.5 gap-0.5 overflow-hidden rounded-full" role="img" aria-label={`${left} ${v}%, ${right} ${100 - v}%`}>
+                {v > 0 && <div className="rounded-l-full bg-coral-400" style={{ width: `${v}%` }} />}
+                {v < 100 && <div className="flex-1 rounded-r-full bg-plum-500" />}
+                <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-white/80" />
               </div>
             </div>
           );
