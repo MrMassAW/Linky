@@ -1,4 +1,4 @@
-import { useEffect, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 
@@ -27,6 +27,61 @@ export function Button({
       {busy && <Spinner small />}
       {children}
     </button>
+  );
+}
+
+/**
+ * A button that asks for confirmation in place. Native confirm() dialogs are
+ * suppressed in some embedded views (they silently return false).
+ */
+export function ConfirmButton({
+  prompt,
+  confirmLabel,
+  onConfirm,
+  variant = 'danger',
+  className = '',
+  children,
+}: {
+  prompt: string;
+  confirmLabel: string;
+  onConfirm: () => unknown;
+  variant?: Variant;
+  className?: string;
+  children: ReactNode;
+}) {
+  const [asking, setAsking] = useState(false);
+  const [busy, setBusy] = useState(false);
+  if (!asking) {
+    return (
+      <Button variant={variant} className={className} onClick={() => setAsking(true)}>
+        {children}
+      </Button>
+    );
+  }
+  return (
+    <div role="alertdialog" aria-label={prompt} className={`col-span-full rounded-2xl bg-coral-50 p-3 ${className}`}>
+      <p className="text-sm text-plum-700">{prompt}</p>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <Button variant="secondary" onClick={() => setAsking(false)} disabled={busy}>
+          Cancel
+        </Button>
+        <Button
+          variant="danger"
+          busy={busy}
+          onClick={async () => {
+            setBusy(true);
+            try {
+              await onConfirm();
+            } finally {
+              setBusy(false);
+              setAsking(false);
+            }
+          }}
+        >
+          {confirmLabel}
+        </Button>
+      </div>
+    </div>
   );
 }
 

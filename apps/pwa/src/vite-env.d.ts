@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_FIREBASE_CONFIG?: string;
   readonly VITE_FIREBASE_VAPID_KEY?: string;
   readonly VITE_HASH_ROUTER?: string;
+  readonly VITE_BUILD?: string;
 }
 interface ImportMeta {
   readonly env: ImportMetaEnv;

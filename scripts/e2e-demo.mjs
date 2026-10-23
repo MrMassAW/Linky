@@ -216,6 +216,12 @@ try {
   await page.getByText('How others see you').waitFor();
   await shot('my-profile');
 
+  step('reset demo (in-page confirmation)');
+  await page.goto(`${BASE}/me/settings`);
+  await click('Reset demo');
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Reset' }).click();
+  await page.getByText('I confirm I am 18 or older').waitFor();
+
   if (errors.length) throw new Error(`page errors: ${errors.join(' | ')}`);
   console.log('\nE2E demo flow passed ✔');
 } catch (e) {

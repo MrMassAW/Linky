@@ -52,7 +52,10 @@ const STATIC = Boolean(process.env.LINKY_STATIC);
 
 export default defineConfig({
   base: STATIC ? './' : '/',
-  define: { 'import.meta.env.VITE_HASH_ROUTER': JSON.stringify(STATIC ? 'true' : '') },
+  define: {
+    'import.meta.env.VITE_HASH_ROUTER': JSON.stringify(STATIC ? 'true' : ''),
+    'import.meta.env.VITE_BUILD': JSON.stringify(new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC'),
+  },
   plugins: [
     vendorAssets(),
     react(),

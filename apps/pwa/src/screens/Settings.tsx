@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Card, ErrorText, Header, Toggle, VerifiedBadge } from '../components/ui';
+import { Button, Card, ConfirmButton, ErrorText, Header, Toggle, VerifiedBadge } from '../components/ui';
 import { hasDemoTools } from '../lib/backend';
 import { enablePush, pushConfigured } from '../lib/push';
 import { useMe, useSession } from '../state/session';
@@ -109,13 +109,14 @@ export default function Settings() {
           ) : (
             <>
               <p className="mt-1 text-sm text-muted">Your profile is hidden right away and fully erased within 30 days.</p>
-              <Button
-                variant="danger"
+              <ConfirmButton
                 className="mt-3 w-full"
-                onClick={() => confirm('Delete your Linky account? This can’t be undone after 30 days.') && void act(() => backend.requestDeletion(), 'Deletion scheduled.')()}
+                prompt="Delete your Linky account? This can’t be undone after 30 days."
+                confirmLabel="Delete"
+                onConfirm={act(() => backend.requestDeletion(), 'Deletion scheduled.')}
               >
                 Delete my account
-              </Button>
+              </ConfirmButton>
             </>
           )}
         </Card>
@@ -129,17 +130,17 @@ export default function Settings() {
               <Button variant="secondary" onClick={act(() => backend.resetLimits(), 'Daily likes and notes reset.')}>
                 Reset daily limits
               </Button>
-              <Button
-                variant="danger"
-                onClick={async () => {
-                  if (!confirm('Erase everything on this device and start over?')) return;
+              <ConfirmButton
+                prompt="Erase everything on this device and start over from sign-up?"
+                confirmLabel="Reset"
+                onConfirm={async () => {
                   await backend.resetDemo();
                   await refresh();
                   nav('/welcome');
                 }}
               >
                 Reset demo
-              </Button>
+              </ConfirmButton>
             </div>
           </Card>
         )}
@@ -162,7 +163,7 @@ export default function Settings() {
         >
           Sign out
         </Button>
-        <p className="text-center text-xs text-muted">Linky {backend.mode === 'mock' ? 'demo' : ''} · v0.1</p>
+        <p className="text-center text-xs text-muted">Linky {backend.mode === 'mock' ? 'demo' : ''} · v0.1 · built {import.meta.env.VITE_BUILD}</p>
       </div>
     </div>
   );

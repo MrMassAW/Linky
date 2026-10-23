@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { MESSENGERS } from '@linky/content';
 import { CompatBadge } from '../components/ProfileCard';
 import { SafetySheet } from '../components/SafetySheet';
-import { Button, ErrorText, FullPageSpinner, Header, Sheet, VerifiedBadge } from '../components/ui';
+import { Button, ErrorText, FullPageSpinner, Header, Sheet, VerifiedBadge, ConfirmButton } from '../components/ui';
 import { NOTE_MAX } from '../lib/backend';
 import type { MatchSummary, Note, SharedHandle } from '../lib/types';
 import { useMe, useSession } from '../state/session';
@@ -69,7 +69,6 @@ export default function MatchDetail() {
   }
 
   async function unmatch() {
-    if (!confirm(`Unmatch ${match?.profile.name}? Notes and handles will be removed.`)) return;
     await backend.unmatch(id);
     nav('/matches', { replace: true });
   }
@@ -207,9 +206,15 @@ export default function MatchDetail() {
           <Button variant="secondary" className="w-full" onClick={() => nav(`/u/${p.id}`)}>
             View profile
           </Button>
-          <Button variant="secondary" className="w-full" onClick={unmatch}>
+          <ConfirmButton
+            variant="secondary"
+            className="w-full"
+            prompt={`Unmatch ${p.name}? Notes and handles will be removed.`}
+            confirmLabel="Unmatch"
+            onConfirm={unmatch}
+          >
             Unmatch
-          </Button>
+          </ConfirmButton>
           <Button variant="danger" className="w-full" onClick={() => { setMenu(false); setSafety({}); }}>
             Report or block
           </Button>
