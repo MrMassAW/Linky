@@ -14,7 +14,6 @@ export function BasicsForm({ onDone, cta = 'Continue' }: { onDone: () => void; c
   const [showLastName, setShowLastName] = useState(me.show_last_name);
   const [birthdate, setBirthdate] = useState(me.birthdate);
   const [city, setCity] = useState(me.city ?? '');
-  const [height, setHeight] = useState(me.height_cm ? String(me.height_cm) : '');
   const [location, setLocation] = useState(me.location);
   const [locating, setLocating] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -44,9 +43,7 @@ export function BasicsForm({ onDone, cta = 'Continue' }: { onDone: () => void; c
     setError(null);
     if (!name.trim()) return setError('Add your first name.');
     if (!birthdate) return setError('Add your birthday.');
-    if (ageFrom(birthdate) < 18) return setError('You must be 18 or older to use Linky.');
-    const h = height ? Number(height) : null;
-    if (h !== null && (h < 90 || h > 250)) return setError('Height should be in centimetres (90–250).');
+    if (ageFrom(birthdate) < 18) return setError('You must be 18 or older to use Linky. This date makes you under 18.');
     setBusy(true);
     try {
       await backend.saveProfile({
@@ -55,7 +52,6 @@ export function BasicsForm({ onDone, cta = 'Continue' }: { onDone: () => void; c
         show_last_name: showLastName,
         birthdate,
         city: city.trim() || null,
-        height_cm: h,
         location: location ?? null,
         // gender is chosen on the next step; the SQL row needs one, default keeps inserts valid
         gender: me.gender,
@@ -85,7 +81,9 @@ export function BasicsForm({ onDone, cta = 'Continue' }: { onDone: () => void; c
       <div>
         <label>Birthday</label>
         <BirthdayPicker value={birthdate} onChange={setBirthdate} />
-        <p className="mt-1 text-xs text-muted">Only your age is shown, never the date.</p>
+        <p className="mt-1 text-xs text-muted">
+          {birthdate && `You’re ${ageFrom(birthdate)}. `}Only your age is shown, never the date.
+        </p>
       </div>
       <div>
         <label htmlFor="city">City or neighbourhood</label>
@@ -102,10 +100,6 @@ export function BasicsForm({ onDone, cta = 'Continue' }: { onDone: () => void; c
           {location && <span className="text-xs text-emerald-700">Location set (rounded to ~1 km)</span>}
         </div>
         <p className="mt-1 text-xs text-muted">Others only ever see a rounded distance like “about 5 km away”.</p>
-      </div>
-      <div>
-        <label htmlFor="h">Height (cm, optional)</label>
-        <input id="h" inputMode="numeric" value={height} onChange={(e) => setHeight(e.target.value.replace(/\D/g, ''))} placeholder="170" />
       </div>
       <ErrorText>{error}</ErrorText>
       <Button type="submit" className="w-full" busy={busy}>

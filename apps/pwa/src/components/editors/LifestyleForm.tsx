@@ -22,6 +22,7 @@ export function LifestyleForm({
   const me = useMe();
   const [attrs, setAttrs] = useState<Attributes>(me.attributes);
   const [prefs, setPrefs] = useState<Preferences>(me.preferences);
+  const [height, setHeight] = useState(me.height_cm ? String(me.height_cm) : '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,10 +32,13 @@ export function LifestyleForm({
 
   async function save() {
     if (prefs.age_min > prefs.age_max) return setError('Minimum age must be below maximum age.');
+    const h = height ? Number(height) : null;
+    if (h !== null && (h < 90 || h > 250)) return setError('Height should be in centimetres (90–250).');
     setBusy(true);
     setError(null);
     try {
       await backend.saveAttributes(attrs);
+      if (h !== me.height_cm) await backend.saveProfile({ height_cm: h });
       if (showPreferences) await backend.savePreferences(prefs);
       await refresh();
       onDone();
@@ -50,6 +54,11 @@ export function LifestyleForm({
       {showPreferences && (
         <PreferenceFields prefs={prefs} onChange={setPrefs} />
       )}
+
+      <div>
+        <label htmlFor="height">Height in cm (optional)</label>
+        <input id="height" inputMode="numeric" value={height} onChange={(e) => setHeight(e.target.value.replace(/\D/g, '').slice(0, 3))} placeholder="170" />
+      </div>
 
       {SINGLE.map((k) => (
         <AttributeField key={k} k={k} s={get(k)} onChange={(p) => put(k, p)} optional={OPTIONAL.has(k)} />

@@ -90,22 +90,41 @@ export function PhotoManager({ onDone, cta = 'Continue' }: { onDone?: () => void
             );
           }
           const next = i === photos.length;
+          const busy = Boolean(status);
+          // A <label> around the file input opens the picker natively on every phone;
+          // calling .click() on a hidden input is unreliable on iOS and in embedded views.
+          if (next && !busy) {
+            return (
+              <label
+                key={i}
+                className="flex aspect-[4/5] cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed border-coral-200 bg-coral-50 text-3xl text-coral-400 focus-within:ring-2 focus-within:ring-coral-300"
+              >
+                +
+                <input
+                  ref={input}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="sr-only"
+                  aria-label="Add photo"
+                  onChange={(e) => onFiles(e.target.files)}
+                />
+              </label>
+            );
+          }
           return (
-            <button
+            <div
               key={i}
-              disabled={!next || Boolean(status)}
-              onClick={() => input.current?.click()}
+              aria-hidden={!next}
               className={`flex aspect-[4/5] items-center justify-center rounded-2xl border-2 border-dashed text-3xl ${
                 next ? 'border-coral-200 bg-coral-50 text-coral-400' : 'border-plum-100 text-plum-100'
               }`}
-              aria-label="Add photo"
             >
-              {next && status ? <Spinner small /> : '+'}
-            </button>
+              {next && busy ? <Spinner small /> : '+'}
+            </div>
           );
         })}
       </div>
-      <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => onFiles(e.target.files)} />
       <p className="mt-3 text-xs text-muted">
         {status ??
           `Add ${MIN_PHOTOS}–${MAX_PHOTOS} photos. They’re resized and compressed on your device, and checked for nudity before upload.`}

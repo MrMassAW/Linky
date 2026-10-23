@@ -70,6 +70,10 @@ try {
   await page.getByLabel('Birth day').selectOption('14');
   await page.getByLabel('Birth month').selectOption('3');
   await page.getByLabel('Birth year').selectOption('1995');
+  // Under-18 birthdays can't be picked at all.
+  const years = await page.getByLabel('Birth year').locator('option').allTextContents();
+  if (years.includes(String(new Date().getFullYear() - 17))) throw new Error('an under-18 birth year is selectable');
+  if (await page.getByLabel(/Height/).count()) throw new Error('height is asked on the first step');
   await page.getByLabel('City or neighbourhood').fill('montre');
   await page.getByRole('option', { name: 'Montréal, Quebec, Canada' }).click();
   await page.getByText('Location set').waitFor();
@@ -86,7 +90,12 @@ try {
 
   step('photos (compress + on-device nudity check)');
   const photos = [await makePhoto(10), await makePhoto(140), await makePhoto(260)];
-  await page.locator('input[type=file]').setInputFiles(photos);
+  // Tap the "+" tile like a person would; it must open the file picker.
+  const [chooser] = await Promise.all([
+    page.waitForEvent('filechooser', { timeout: 5_000 }),
+    page.locator('label:has(input[type=file])').click(),
+  ]);
+  await chooser.setFiles(photos);
   await page.getByRole('img', { name: 'Photo 3' }).waitFor({ timeout: 120_000 });
   const uploadInfo = await page.getByText(/Last upload:/).textContent();
   console.log(`  ${uploadInfo}`);
@@ -126,6 +135,7 @@ try {
   await click('Continue');
 
   step('lifestyle');
+  await page.getByLabel(/Height in cm/).fill('172');
   await click('Long-term relationship');
   await click('Sometimes');
   await shot('lifestyle');
