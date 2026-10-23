@@ -56,6 +56,8 @@ export interface Backend {
 
   // discover
   getFeed(): Promise<FeedItem[]>;
+  /** Why people are missing from Discover: counts per reason (optional; the demo backend has it). */
+  explainFeed?(): Promise<FeedExplanation>;
   getPublicProfile(id: string): Promise<PublicProfile | null>;
   like(toId: string, targetType: LikeTargetType, targetId: string, comment: string): Promise<LikeResult>;
   skip(toId: string): Promise<void>;
@@ -119,4 +121,15 @@ export function getBackend(): Promise<Backend> {
 
 export function hasDemoTools(b: Backend): b is Backend & DemoTools {
   return b.mode === 'mock';
+}
+
+export interface FeedExplanation {
+  /** Everyone else on the service (excluding paused, banned, deleted). */
+  total: number;
+  /** Already liked, skipped, matched or blocked. */
+  seen: number;
+  /** Would be shown. */
+  available: number;
+  /** Hidden by a mutual filter, keyed by reason: gender, age, distance, dealbreaker:<key>, kinks. */
+  filtered: Record<string, number>;
 }

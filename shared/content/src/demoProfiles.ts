@@ -330,7 +330,7 @@ export function generateDemoProfiles(count = 70, seed = 20261023): DemoProfile[]
   const out: DemoProfile[] = [];
   for (let i = 0; i < count; i++) {
     const [name, gender, pronouns, orientation, seeking] = PEOPLE[i % PEOPLE.length];
-    const age = 21 + Math.floor(r() * 22); // 21..42
+    const age = 22 + Math.floor(r() * 37); // 22..58, so testers of most ages see people
     const month = 1 + Math.floor(r() * 12);
     const day = 1 + Math.floor(r() * 28);
     const birthdate = `${DEMO_YEAR - age}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -389,8 +389,8 @@ export function generateDemoProfiles(count = 70, seed = 20261023): DemoProfile[]
         languages: setting(languages),
         interests: setting(interests),
       },
-      age_min: Math.max(18, age - 6 - Math.floor(r() * 4)),
-      age_max: age + 6 + Math.floor(r() * 8),
+      age_min: Math.max(18, age - 10 - Math.floor(r() * 6)),
+      age_max: age + 10 + Math.floor(r() * 10),
       distance_km: pick(r, [25, 50, 50, 100, null]),
       kinks: kinkOpt
         ? {

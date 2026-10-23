@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FeedExplainer } from '../components/FeedExplainer';
 import { LikeSheet } from '../components/LikeSheet';
 import { ProfileCard, type LikeTarget } from '../components/ProfileCard';
 import { SafetySheet } from '../components/SafetySheet';
@@ -71,6 +72,7 @@ export default function Discover() {
             <Button variant="secondary" onClick={() => nav('/me/filters')}>Adjust filters</Button>
             <Button variant="ghost" onClick={() => { setIndex(0); void feed.reload(); }}>Refresh</Button>
           </div>
+          <FeedExplainer key={index} />
         </Empty>
       ) : (
         <div key={item.profile.id} className="animate-fade-in pb-20">

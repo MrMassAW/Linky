@@ -125,3 +125,18 @@ describe('MockBackend upgrades', () => {
     expect(Object.values(after.profiles).filter((p) => p.is_demo)).toHaveLength(70);
   });
 });
+
+describe('MockBackend feed explanation', () => {
+  it('accounts for everyone: seen + filtered + available = total', async () => {
+    const b = new MockBackend();
+    await b.resetDemo();
+    await onboard(b);
+    await b.savePreferences({ age_min: 30, age_max: 32, distance_km: 5, genders_wanted: ['men'] });
+    const feed = await b.getFeed();
+    const x = await b.explainFeed();
+    const filtered = Object.values(x.filtered).reduce((a, n) => a + n, 0);
+    expect(x.seen + filtered + x.available).toBe(x.total);
+    expect(x.available).toBe(feed.length);
+    expect(x.filtered.gender).toBeGreaterThan(0);
+  });
+});

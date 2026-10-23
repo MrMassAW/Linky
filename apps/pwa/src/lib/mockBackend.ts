@@ -30,6 +30,7 @@ import {
   type SessionUser,
 } from './backend';
 import { toMatchable, publicView } from './profileView';
+import type { FeedExplanation } from './backend';
 import {
   LimitError,
   type AdminReport,
@@ -51,6 +52,8 @@ import {
 } from './types';
 
 const DB_VERSION = 1;
+/** Bump when generated demo profiles change; stored demos are refreshed in place. */
+const DEMO_REVISION = 2;
 const DEFAULT_CENTER: GeoPoint = { lat: 45.5017, lng: -73.5673 }; // Montréal
 const BOT_DELAY_MS = 4000;
 
@@ -99,6 +102,7 @@ interface Report {
 
 interface MockDB {
   version: number;
+  demo_revision?: number;
   users: SessionUser[];
   session: string | null;
   profiles: Record<string, StoredProfile>;
@@ -190,6 +194,7 @@ function freshDb(): MockDB {
   ];
   return {
     version: DB_VERSION,
+    demo_revision: DEMO_REVISION,
     users: [],
     session: null,
     profiles,
@@ -249,12 +254,18 @@ export class MockBackend implements Backend, DemoTools {
     if (this.db) return this.db;
     const saved = await get<MockDB>(KEY, store).catch(() => undefined);
     this.db = saved && saved.version === DB_VERSION ? saved : freshDb();
-    // Demo profiles added in a later build join an existing demo without a reset.
-    const added = generateDemoProfiles()
+    // Demo profiles added or changed in a later build join an existing demo without a
+    // reset. Ids are stable, so likes, matches and notes with them carry over.
+    const refresh = (this.db.demo_revision ?? 1) !== DEMO_REVISION;
+    const changed = generateDemoProfiles()
       .map((d, n) => demoToStored(d, n))
-      .filter((p) => !this.db!.profiles[p.id]);
-    for (const p of added) this.db.profiles[p.id] = p;
-    if (!saved || added.length) await this.save();
+      .filter((p) => refresh || !this.db!.profiles[p.id]);
+    for (const p of changed) {
+      const old = this.db.profiles[p.id];
+      this.db.profiles[p.id] = old ? { ...p, banned: old.banned, photos: p.photos.map((ph) => ({ ...ph, removed_by_admin: old.photos.find((o) => o.id === ph.id)?.removed_by_admin })) } : p;
+    }
+    this.db.demo_revision = DEMO_REVISION;
+    if (!saved || changed.length) await this.save();
     return this.db;
   }
 
@@ -481,6 +492,26 @@ export class MockBackend implements Backend, DemoTools {
   }
 
   // ---- discover ------------------------------------------------------------
+  async explainFeed(): Promise<FeedExplanation> {
+    const db = await this.load();
+    const me = this.resolved(db, this.me(db));
+    const meM = toMatchable(me);
+    const out: FeedExplanation = { total: 0, seen: 0, available: 0, filtered: {} };
+    for (const p of Object.values(db.profiles)) {
+      if (p.id === me.id || !p.onboarding_complete || p.banned || p.deletion_requested_at || p.paused) continue;
+      out.total++;
+      const acted = db.likes.some((l) => l.from_id === me.id && l.to_id === p.id) || db.skips.some((s) => s.from_id === me.id && s.to_id === p.id);
+      if (acted || this.matchBetween(db, me.id, p.id) || this.blocked(db, me.id, p.id)) {
+        out.seen++;
+        continue;
+      }
+      const why = hardFilter(meM, toMatchable(this.resolved(db, p)));
+      if (why) out.filtered[why] = (out.filtered[why] ?? 0) + 1;
+      else out.available++;
+    }
+    return out;
+  }
+
   async getFeed(): Promise<FeedItem[]> {
     const db = await this.load();
     const me = this.resolved(db, this.me(db));
