@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PERSONALITY_QUESTIONS, RECEIVE_QUESTIONS, scoreLoveLanguage, scorePersonality, topLanguages } from './scoring';
+import { PERSONALITY_QUESTIONS, RECEIVE_QUESTIONS, scoreLoveLanguage, scorePersonality, topLanguages, vectorFromPicks } from './scoring';
 import { fitWithin } from '../lib/image';
 import { pickChallenges, signatureSimilarity, stepChallenge, type FrameSignals } from '../lib/liveness';
 import { scoreFromPredictions } from '../lib/nsfw';
@@ -79,5 +79,15 @@ describe('nsfw score', () => {
   it('weights explicit classes fully and suggestive by half', () => {
     expect(scoreFromPredictions([{ className: 'Neutral', probability: 0.9 }, { className: 'Sexy', probability: 0.1 }])).toBeCloseTo(0.05);
     expect(scoreFromPredictions([{ className: 'Porn', probability: 0.8 }])).toBeCloseTo(0.8);
+  });
+});
+
+describe('picked love languages', () => {
+  it('weights the main and second picks and sums to 100', () => {
+    const v = vectorFromPicks('touch', 'time');
+    expect(v.reduce((a, b) => a + b, 0)).toBe(100);
+    expect(topLanguages(v)).toEqual(['touch', 'time']);
+    const solo = vectorFromPicks('gifts');
+    expect(solo).toEqual([15, 15, 40, 15, 15]);
   });
 });

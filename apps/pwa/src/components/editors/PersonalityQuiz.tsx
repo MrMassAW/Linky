@@ -3,7 +3,7 @@ import { LIKERT_LABELS, TYPE_NICKNAMES } from '@linky/content';
 import { TYPES, scoresFromType, type Personality, type PersonalityType } from '@linky/matching';
 import { PERSONALITY_QUESTIONS, scorePersonality } from '../../quiz/scoring';
 import { useMe, useSession } from '../../state/session';
-import { Button, Chip, Toggle } from '../ui';
+import { Button, Toggle } from '../ui';
 
 export function PersonalityQuiz({ onDone, cta = 'Continue' }: { onDone: () => void; cta?: string }) {
   const { backend, refresh } = useSession();
@@ -58,14 +58,17 @@ export function PersonalityQuiz({ onDone, cta = 'Continue' }: { onDone: () => vo
     return (
       <div>
         <p className="mb-3 text-sm text-muted">Pick your type:</p>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {TYPES.map((t) => (
-            <Chip
+            <button
               key={t}
+              disabled={busy}
               onClick={() => persist({ type: t, ...scoresFromType(t as PersonalityType), visible: true, self_reported: true })}
+              className="rounded-2xl border border-plum-100 bg-white px-3 py-2.5 text-left transition hover:border-coral-300 active:scale-[0.98]"
             >
-              {t}
-            </Chip>
+              <span className="block font-display text-lg font-semibold text-coral-500">{t}</span>
+              <span className="block text-xs text-plum-700">{TYPE_NICKNAMES[t]}</span>
+            </button>
           ))}
         </div>
         <Button variant="ghost" className="mt-4 w-full" onClick={() => setMode('start')}>

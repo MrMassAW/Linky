@@ -216,6 +216,22 @@ try {
   await page.getByText('How others see you').waitFor();
   await shot('my-profile');
 
+  step('pick a known type and known love languages');
+  await page.goto(`${BASE}/me/quiz/personality`);
+  await click('Retake');
+  await click('I already know my type');
+  await shot('known-type');
+  await page.getByRole('button', { name: /INFJ\s*The Confidant/ }).click();
+  await page.getByText('INFJ').first().waitFor();
+  await page.goto(`${BASE}/me/quiz/love`);
+  await click('Retake');
+  await click('I already know my love languages');
+  await click(/Quality Time/);
+  await click(/Physical Touch/);
+  await shot('known-love');
+  await click('Save');
+  await page.getByText('How I like to receive love').waitFor();
+
   step('reset demo (in-page confirmation)');
   await page.goto(`${BASE}/me/settings`);
   await click('Reset demo');

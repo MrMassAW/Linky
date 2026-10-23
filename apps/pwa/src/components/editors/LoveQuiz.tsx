@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { LOVE_LANGUAGE_EMOJI, LOVE_LANGUAGE_LABELS, type ForcedChoice } from '@linky/content';
 import { LOVE_LANGUAGES, type LoveLanguage, type LoveLanguageProfile, type LoveVector } from '@linky/matching';
-import { GIVE_QUESTIONS, RECEIVE_QUESTIONS, scoreLoveLanguage } from '../../quiz/scoring';
+import { GIVE_QUESTIONS, RECEIVE_QUESTIONS, scoreLoveLanguage, vectorFromPicks } from '../../quiz/scoring';
 import { useMe, useSession } from '../../state/session';
-import { Button, Toggle } from '../ui';
+import { Button, Chip, Toggle } from '../ui';
 
 type Part = 'receive' | 'give';
 
 export function LoveQuiz({ onDone, cta = 'Continue' }: { onDone: () => void; cta?: string }) {
   const { backend, refresh } = useSession();
   const me = useMe();
-  const [stage, setStage] = useState<'start' | Part | 'result'>(me.love_language ? 'result' : 'start');
+  const [stage, setStage] = useState<'start' | 'known' | Part | 'result'>(me.love_language ? 'result' : 'start');
   const [i, setI] = useState(0);
   const [picks, setPicks] = useState<Record<string, LoveLanguage>>({});
   const [receive, setReceive] = useState<LoveVector | null>(null);
@@ -36,8 +36,15 @@ export function LoveQuiz({ onDone, cta = 'Continue' }: { onDone: () => void; cta
         <Button className="w-full" onClick={() => { setI(0); setPicks({}); setStage('receive'); }}>
           Start (≈2 min)
         </Button>
+        <Button variant="secondary" className="w-full" onClick={() => setStage('known')}>
+          I already know my love languages
+        </Button>
       </div>
     );
+  }
+
+  if (stage === 'known') {
+    return <KnownLoveLanguages busy={busy} onBack={() => setStage('start')} onSave={(p) => persist({ ...p, visible: result?.visible ?? true })} />;
   }
 
   if (stage === 'receive' || stage === 'give') {
@@ -100,6 +107,71 @@ export function LoveQuiz({ onDone, cta = 'Continue' }: { onDone: () => void; cta
       </Button>
       <Button variant="ghost" className="mt-2 w-full" onClick={() => setStage('start')}>
         Retake
+      </Button>
+    </div>
+  );
+}
+
+type Picks = { main: LoveLanguage | null; second: LoveLanguage | null };
+
+function LanguagePicker({ title, picks, onChange }: { title: string; picks: Picks; onChange: (p: Picks) => void }) {
+  const tap = (l: LoveLanguage) => {
+    if (picks.main === l) onChange({ main: picks.second, second: null });
+    else if (picks.second === l) onChange({ ...picks, second: null });
+    else if (!picks.main) onChange({ ...picks, main: l });
+    else onChange({ ...picks, second: l });
+  };
+  return (
+    <section>
+      <h3 className="text-lg font-semibold">{title}</h3>
+      <p className="mb-2 text-xs text-muted">Tap your main one, then optionally a second.</p>
+      <div className="flex flex-wrap gap-2">
+        {LOVE_LANGUAGES.map((l) => (
+          <Chip key={l} selected={picks.main === l || picks.second === l} onClick={() => tap(l)}>
+            {LOVE_LANGUAGE_EMOJI[l]} {LOVE_LANGUAGE_LABELS[l]}
+            {picks.main === l && ' · 1st'}
+            {picks.second === l && ' · 2nd'}
+          </Chip>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function KnownLoveLanguages({
+  busy,
+  onBack,
+  onSave,
+}: {
+  busy: boolean;
+  onBack: () => void;
+  onSave: (p: Pick<LoveLanguageProfile, 'receive' | 'give'>) => void;
+}) {
+  const [receive, setReceive] = useState<Picks>({ main: null, second: null });
+  const [give, setGive] = useState<Picks>({ main: null, second: null });
+  const [sameGive, setSameGive] = useState(true);
+  const giving = sameGive ? receive : give;
+  const ready = Boolean(receive.main && giving.main);
+  return (
+    <div className="space-y-6">
+      <LanguagePicker title="How you like to receive love" picks={receive} onChange={setReceive} />
+      <Toggle checked={sameGive} onChange={setSameGive} label="I give love the same way" />
+      {!sameGive && <LanguagePicker title="How you naturally give love" picks={give} onChange={setGive} />}
+      <Button
+        className="w-full"
+        disabled={!ready}
+        busy={busy}
+        onClick={() =>
+          onSave({
+            receive: vectorFromPicks(receive.main!, receive.second),
+            give: vectorFromPicks(giving.main!, giving.second),
+          })
+        }
+      >
+        {ready ? 'Save' : 'Pick your main love language'}
+      </Button>
+      <Button variant="ghost" className="w-full" onClick={onBack}>
+        Back
       </Button>
     </div>
   );

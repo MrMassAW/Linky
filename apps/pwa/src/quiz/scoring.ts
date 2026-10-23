@@ -52,3 +52,19 @@ export function topLanguages(v: readonly number[], n = 2): LoveLanguage[] {
     .slice(0, n)
     .map(([l]) => l);
 }
+
+/**
+ * Shares for someone who picks their love languages instead of taking the quiz:
+ * the main one gets 40%, an optional second 25%, the rest split what's left.
+ */
+export function vectorFromPicks(main: LoveLanguage, second?: LoveLanguage | null): LoveVector {
+  const rest = LOVE_LANGUAGES.filter((l) => l !== main && l !== second);
+  const left = second ? 35 : 60;
+  const v = LOVE_LANGUAGES.map((l) => {
+    if (l === main) return 40;
+    if (l === second) return 25;
+    const i = rest.indexOf(l);
+    return Math.floor(left / rest.length) + (i < left % rest.length ? 1 : 0);
+  });
+  return v as LoveVector;
+}
