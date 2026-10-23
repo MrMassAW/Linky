@@ -4,7 +4,7 @@ import { MESSENGERS } from '@linky/content';
 import { CompatBadge } from '../components/ProfileCard';
 import { SafetySheet } from '../components/SafetySheet';
 import { Button, ErrorText, FullPageSpinner, Header, Sheet, VerifiedBadge, ConfirmButton } from '../components/ui';
-import { NOTE_MAX } from '../lib/backend';
+import { DAILY_NOTES, NOTE_MAX } from '../lib/backend';
 import type { MatchSummary, Note, SharedHandle } from '../lib/types';
 import { useMe, useSession } from '../state/session';
 
@@ -158,7 +158,7 @@ export default function MatchDetail() {
         <section>
           <h3 className="px-1 text-lg font-semibold">Notes</h3>
           <p className="px-1 text-xs text-muted">
-            Short notes, not a chat: up to {NOTE_MAX} characters and 5 per day each. No typing or read receipts.
+            Short notes, not a chat: up to {NOTE_MAX} characters and {DAILY_NOTES} per day each. No typing or read receipts.
           </p>
           <div className="mt-3 space-y-2">
             {notes.length === 0 && <p className="px-1 text-sm text-muted">No notes yet. Say something about what you liked!</p>}

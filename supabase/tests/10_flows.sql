@@ -83,8 +83,8 @@ begin
   mid := (res->>'match_id')::uuid;
   assert jsonb_array_length(get_matches()) = 1, 'match listed';
 
-  -- notes: 5 per day per match
-  for i in 1..5 loop insert into notes (match_id, sender_id, body) values (mid, auth.uid(), 'note ' || i); end loop;
+  -- notes: 20 per day per match
+  for i in 1..20 loop insert into notes (match_id, sender_id, body) values (mid, auth.uid(), 'note ' || i); end loop;
   begin
     insert into notes (match_id, sender_id, body) values (mid, auth.uid(), 'one too many');
     raise exception 'note limit not enforced';

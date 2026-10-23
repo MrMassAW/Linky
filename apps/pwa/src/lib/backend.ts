@@ -100,7 +100,7 @@ export interface DemoTools {
 export const NOTE_MAX = 500;
 export const LIKE_COMMENT_MAX = 200;
 export const DAILY_LIKES = 10;
-export const DAILY_NOTES = 5;
+export const DAILY_NOTES = 20;
 
 let instance: Promise<Backend> | null = null;
 

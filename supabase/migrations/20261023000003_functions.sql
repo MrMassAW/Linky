@@ -195,7 +195,7 @@ language sql stable security definer set search_path = public as $$
 $$;
 
 create or replace function public.daily_like_limit() returns int language sql immutable as $$ select 10 $$;
-create or replace function public.daily_note_limit() returns int language sql immutable as $$ select 5 $$;
+create or replace function public.daily_note_limit() returns int language sql immutable as $$ select 20 $$;
 
 create or replace function public.likes_remaining() returns int
 language sql stable security definer set search_path = public as $$

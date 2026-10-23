@@ -59,7 +59,7 @@ All scoring lives in `shared/matching` and is shared by the PWA (mock backend) a
 
 ## Limits & safety (spec §4.2, §4.4, §10)
 
-- 10 likes per day (supporters unlimited), 5 notes per person per match per day, 500 characters per note, 200 per like comment. Enforced in SQL (`like_profile`, `enforce_note_limit` trigger) and mirrored in the mock.
+- 10 likes per day (supporters unlimited), 20 notes per person per match per day, 500 characters per note, 200 per like comment. Enforced in SQL (`like_profile`, `enforce_note_limit` trigger) and mirrored in the mock.
 - Report + block on every profile and every received note. Reports snapshot the note text so evidence survives an unmatch. Profiles reported by 3+ different people are auto-flagged and sorted to the top of the admin queue.
 - Admin page: open/actioned/dismissed/all, view reported profile photos and prompts, remove a photo, ban/unban, resolve/reopen.
 
