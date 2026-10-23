@@ -45,6 +45,9 @@ export interface MyProfile {
   id: string;
   email: string | null;
   name: string;
+  /** Optional; only shown to matches, and only if show_last_name. */
+  last_name: string | null;
+  show_last_name: boolean;
   birthdate: string;
   gender: Gender;
   gender_custom: string | null;
@@ -77,6 +80,8 @@ export interface MyProfile {
 export type ProfileCore = Pick<
   MyProfile,
   | 'name'
+  | 'last_name'
+  | 'show_last_name'
   | 'birthdate'
   | 'gender'
   | 'gender_custom'
@@ -97,6 +102,8 @@ export type ProfileCore = Pick<
 export interface PublicProfile {
   id: string;
   name: string;
+  /** Only present for matches who chose to show it. */
+  last_name: string | null;
   age: number;
   gender: string | null;
   pronouns: string | null;

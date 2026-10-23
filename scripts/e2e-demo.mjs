@@ -66,9 +66,12 @@ try {
 
   step('basics');
   await page.getByLabel('First name').fill('Robin');
-  await page.getByLabel('Birthday').fill('1995-03-14');
-  await page.getByLabel('City or neighbourhood').fill('Montréal · Plateau');
-  await click(/approximate location/);
+  await page.getByLabel('Last name (optional)').fill('Tremblay');
+  await page.getByLabel('Birth day').selectOption('14');
+  await page.getByLabel('Birth month').selectOption('3');
+  await page.getByLabel('Birth year').selectOption('1995');
+  await page.getByLabel('City or neighbourhood').fill('montre');
+  await page.getByRole('option', { name: 'Montréal, Quebec, Canada' }).click();
   await page.getByText('Location set').waitFor();
   await shot('basics');
   await click('Continue');

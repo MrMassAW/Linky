@@ -94,6 +94,7 @@ export default function MatchDetail() {
           <Link to={`/u/${p.id}`} className="flex items-center gap-2">
             <img src={p.photos[0]?.url} alt="" className="h-9 w-9 rounded-full object-cover" />
             {p.name}
+            {p.last_name && ` ${p.last_name}`}
             {p.verified && <VerifiedBadge />}
           </Link>
         }

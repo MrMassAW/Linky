@@ -42,6 +42,7 @@ export function publicView(
   return {
     id: p.id,
     name: p.name,
+    last_name: opts.isMatch && p.show_last_name ? (p.last_name ?? null) : null,
     age: ageFrom(p.birthdate, opts.now),
     gender: p.show_gender ? (p.gender_custom ?? p.gender) : null,
     pronouns: p.show_pronouns ? p.pronouns : null,

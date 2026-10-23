@@ -74,6 +74,7 @@ begin
   return jsonb_build_object(
     'id', p.id,
     'name', p.name,
+    'last_name', case when matched and p.show_last_name then p.last_name end,
     'age', public.age_of(p.birthdate),
     'gender', case when p.show_gender then coalesce(p.gender_custom, p.gender) end,
     'pronouns', case when p.show_pronouns then p.pronouns end,

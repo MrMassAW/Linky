@@ -1,18 +1,17 @@
 import { useState } from 'react';
 import { ageFrom, approximate } from '@linky/matching';
-import { Button, ErrorText } from '../ui';
+import { Button, ErrorText, Toggle } from '../ui';
+import { BirthdayPicker } from './BirthdayPicker';
+import { CitySearch } from './CitySearch';
+import { nearestPlace } from '../../lib/cities';
 import { useMe, useSession } from '../../state/session';
-
-export function maxBirthdate(now = new Date()) {
-  const d = new Date(now);
-  d.setFullYear(d.getFullYear() - 18);
-  return d.toISOString().slice(0, 10);
-}
 
 export function BasicsForm({ onDone, cta = 'Continue' }: { onDone: () => void; cta?: string }) {
   const { backend, refresh } = useSession();
   const me = useMe();
   const [name, setName] = useState(me.name);
+  const [lastName, setLastName] = useState(me.last_name ?? '');
+  const [showLastName, setShowLastName] = useState(me.show_last_name);
   const [birthdate, setBirthdate] = useState(me.birthdate);
   const [city, setCity] = useState(me.city ?? '');
   const [height, setHeight] = useState(me.height_cm ? String(me.height_cm) : '');
@@ -27,8 +26,10 @@ export function BasicsForm({ onDone, cta = 'Continue' }: { onDone: () => void; c
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         // Snap to ~1 km before it ever leaves this function.
-        setLocation(approximate({ lat: pos.coords.latitude, lng: pos.coords.longitude }));
+        const point = approximate({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocation(point);
         setLocating(false);
+        if (!city.trim()) void nearestPlace(point).then((p) => p && setCity(p.label));
       },
       (err) => {
         setError(`Couldn't get your location (${err.message}). You can still type your city.`);
@@ -42,13 +43,16 @@ export function BasicsForm({ onDone, cta = 'Continue' }: { onDone: () => void; c
     e.preventDefault();
     setError(null);
     if (!name.trim()) return setError('Add your first name.');
-    if (!birthdate || ageFrom(birthdate) < 18) return setError('You must be 18 or older to use Linky.');
+    if (!birthdate) return setError('Add your birthday.');
+    if (ageFrom(birthdate) < 18) return setError('You must be 18 or older to use Linky.');
     const h = height ? Number(height) : null;
     if (h !== null && (h < 90 || h > 250)) return setError('Height should be in centimetres (90–250).');
     setBusy(true);
     try {
       await backend.saveProfile({
         name: name.trim().split(/\s+/)[0],
+        last_name: lastName.trim() || null,
+        show_last_name: showLastName,
         birthdate,
         city: city.trim() || null,
         height_cm: h,
@@ -72,13 +76,25 @@ export function BasicsForm({ onDone, cta = 'Continue' }: { onDone: () => void; c
         <input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} autoComplete="given-name" />
       </div>
       <div>
-        <label htmlFor="bd">Birthday</label>
-        <input id="bd" type="date" value={birthdate} max={maxBirthdate()} onChange={(e) => setBirthdate(e.target.value)} />
+        <label htmlFor="last-name">Last name (optional)</label>
+        <input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} maxLength={40} autoComplete="family-name" />
+        {lastName.trim() && (
+          <Toggle checked={showLastName} onChange={setShowLastName} label="Show it to my matches" hint="Never shown in Discover." />
+        )}
+      </div>
+      <div>
+        <label>Birthday</label>
+        <BirthdayPicker value={birthdate} onChange={setBirthdate} />
         <p className="mt-1 text-xs text-muted">Only your age is shown, never the date.</p>
       </div>
       <div>
         <label htmlFor="city">City or neighbourhood</label>
-        <input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Montréal · Plateau" />
+        <CitySearch
+          id="city"
+          value={city}
+          onChange={setCity}
+          onPick={(p) => setLocation(approximate(p.point))}
+        />
         <div className="mt-2 flex items-center gap-3">
           <Button type="button" variant="secondary" className="!px-4 !py-2 text-sm" busy={locating} onClick={locate}>
             📍 {location ? 'Update location' : 'Use my approximate location'}

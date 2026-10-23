@@ -64,4 +64,6 @@ See **[docs/SETUP.md](docs/SETUP.md)**: Supabase (auth, database, edge functions
 
 Design notes, privacy model and known limitations are in **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
+City search uses place data from [GeoNames](https://www.geonames.org/) (CC BY 4.0), bundled offline (`pnpm gen:cities`).
+
 The personality quiz is an original 16-type question set. It is not affiliated with the Myers-Briggs Company or the MBTI® assessment.

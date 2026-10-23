@@ -168,6 +168,7 @@ export function ProfileCard({
         <div>
           <h2 className="flex items-center gap-1.5 text-3xl font-semibold">
             {p.name}
+            {p.last_name && ` ${p.last_name}`}
             {p.verified && <VerifiedBadge />}
           </h2>
           <p className="text-sm text-muted">

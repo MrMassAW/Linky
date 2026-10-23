@@ -13,6 +13,8 @@ create extension if not exists pgcrypto with schema extensions;
 create table public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   name text not null check (char_length(name) between 1 and 40),
+  last_name text check (char_length(last_name) <= 40),
+  show_last_name boolean not null default true, -- matches only
   birthdate date not null check (birthdate <= (current_date - interval '18 years')),
   gender text not null,
   gender_custom text,
