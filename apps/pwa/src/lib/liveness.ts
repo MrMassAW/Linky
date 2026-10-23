@@ -8,8 +8,8 @@
 // biometric match. The score is stored for moderators; see docs/ARCHITECTURE.md.
 import type { FaceLandmarker, NormalizedLandmark } from '@mediapipe/tasks-vision';
 
-export const MEDIAPIPE_VERSION = '1.1.1';
-const WASM_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`;
+// WASM runtime is self-hosted by the build (see vite.config.ts); only the model comes from Google.
+const WASM_URL = '/mediapipe';
 const MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
 

@@ -7,9 +7,14 @@ type Model = { classify(img: HTMLImageElement): Promise<{ className: string; pro
 let modelPromise: Promise<Model> | null = null;
 
 async function loadModel(): Promise<Model> {
-  const [tf, nsfwjs] = await Promise.all([import('@tensorflow/tfjs'), import('nsfwjs')]);
+  // Import only the small MobileNetV2 model (~2.6 MB) instead of every bundled model.
+  const [tf, core, mobilenet] = await Promise.all([
+    import('@tensorflow/tfjs'),
+    import('nsfwjs/core'),
+    import('nsfwjs/models/mobilenet_v2'),
+  ]);
   await tf.ready();
-  return (await nsfwjs.load('MobileNetV2')) as unknown as Model;
+  return (await core.load('MobileNetV2', { modelDefinitions: [mobilenet.MobileNetV2Model] })) as unknown as Model;
 }
 
 export function warmUpNsfw() {

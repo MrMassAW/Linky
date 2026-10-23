@@ -38,7 +38,7 @@ export class SupabaseBackend implements Backend {
   readonly sb: SupabaseClient;
 
   constructor() {
-    this.sb = createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY, {
+    this.sb = createClient(env.VITE_SUPABASE_URL!, env.VITE_SUPABASE_ANON_KEY!, {
       auth: { persistSession: true, detectSessionInUrl: true, flowType: 'pkce' },
     });
   }

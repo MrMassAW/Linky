@@ -388,7 +388,8 @@ export class MockBackend implements Backend, DemoTools {
     const db = await this.load();
     if (!db.session) return null;
     const p = db.profiles[db.session];
-    return p ? structuredClone(p) : null;
+    const user = db.users.find((u) => u.id === db.session);
+    return p ? structuredClone(p) : emptyProfile(db.session, user?.email ?? null);
   }
 
   private async patchMe(fn: (p: StoredProfile, db: MockDB) => void) {
