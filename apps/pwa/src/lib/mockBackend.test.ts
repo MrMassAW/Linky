@@ -105,3 +105,23 @@ describe('MockBackend demo flow', () => {
     expect(after).toBeGreaterThan(before);
   });
 });
+
+describe('MockBackend upgrades', () => {
+  it('adds newly generated demo profiles to an existing demo without losing the tester', async () => {
+    const { get, set, createStore } = await import('idb-keyval');
+    const b = new MockBackend();
+    await b.resetDemo();
+    await onboard(b);
+    const store = createStore('linky-mock', 'kv');
+    const db = (await get('db', store)) as { profiles: Record<string, { is_demo?: boolean }>; session: string };
+    const demoIds = Object.keys(db.profiles).filter((id) => db.profiles[id].is_demo);
+    expect(demoIds).toHaveLength(70);
+    for (const id of demoIds.slice(50)) delete db.profiles[id]; // an older 50-profile demo
+    await set('db', db, store);
+
+    const upgraded = new MockBackend();
+    expect((await upgraded.getMyProfile())?.name).toBe('Tess');
+    const after = (await get('db', store)) as typeof db;
+    expect(Object.values(after.profiles).filter((p) => p.is_demo)).toHaveLength(70);
+  });
+});

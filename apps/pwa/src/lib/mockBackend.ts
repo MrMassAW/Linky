@@ -1,5 +1,5 @@
 // In-browser backend for demos: everything lives in IndexedDB on this device.
-// 50 seeded demo profiles act as simple bots so one person can walk the whole flow:
+// 70 seeded demo profiles act as simple bots so one person can walk the whole flow:
 // some already like you, some like you back, they reply to notes and accept Connect.
 import { createStore, del, get, set } from 'idb-keyval';
 import {
@@ -249,7 +249,12 @@ export class MockBackend implements Backend, DemoTools {
     if (this.db) return this.db;
     const saved = await get<MockDB>(KEY, store).catch(() => undefined);
     this.db = saved && saved.version === DB_VERSION ? saved : freshDb();
-    if (!saved) await this.save();
+    // Demo profiles added in a later build join an existing demo without a reset.
+    const added = generateDemoProfiles()
+      .map((d, n) => demoToStored(d, n))
+      .filter((p) => !this.db!.profiles[p.id]);
+    for (const p of added) this.db.profiles[p.id] = p;
+    if (!saved || added.length) await this.save();
     return this.db;
   }
 

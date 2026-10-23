@@ -9,7 +9,7 @@ pnpm install
 pnpm dev            # http://localhost:5173
 ```
 
-With no environment variables set, the app runs on an **in-browser demo backend** (IndexedDB) with **50 seeded demo profiles**. Nothing leaves your device. The demo profiles act as simple bots, so one person can walk the whole flow:
+With no environment variables set, the app runs on an **in-browser demo backend** (IndexedDB) with **70 seeded demo profiles**. Nothing leaves your device. The demo profiles act as simple bots, so one person can walk the whole flow:
 
 - a few of them already **like you** once you finish onboarding,
 - most **like you back**, so a like becomes a match,
@@ -25,7 +25,7 @@ Settings → **Demo tools** lets you turn on admin mode (report queue), reset da
 | --- | --- |
 | Sign up (email / Google / Apple, 18+ gate), liveness check, full profile with compressed photos | `screens/Welcome`, `screens/onboarding`, `components/editors/*` |
 | Both quizzes with results | `components/editors/PersonalityQuiz`, `LoveQuiz`, `quiz/scoring.ts` |
-| Discover feed of ~50 seeded profiles with compatibility scores | `screens/Discover`, `shared/matching` |
+| Discover feed of ~70 seeded profiles with compatibility scores | `screens/Discover`, `shared/matching` |
 | Like a photo/prompt with a comment → match → async note → mutual Connect → WhatsApp/Telegram | `screens/LikesYou`, `screens/Matches`, `screens/MatchDetail` |
 | Filters and visibility toggles, including the opt-in kink section | `screens/Filters`, `components/editors/LifestyleForm`, `KinksForm` |
 | Report/block shows up in the admin queue | `components/SafetySheet`, `screens/Admin` |
@@ -42,7 +42,7 @@ shared/matching/     scoring + 16x16 table + hard filters + feed ranking (used b
 shared/content/      prompts, original quiz questions, option labels, demo profile generator
 supabase/migrations/ schema, RLS policies, RPCs, storage bucket
 supabase/functions/  feed (scoring), r2-upload (signed uploads + purge), notify (FCM push)
-supabase/seed.sql    50 demo profiles (generated: `pnpm gen:seed-sql`)
+supabase/seed.sql    70 demo profiles (generated: `pnpm gen:seed-sql`)
 docs/                SETUP.md (real services), ARCHITECTURE.md (design notes, limits)
 scripts/             seed generator, DB tests, end-to-end demo test
 ```

@@ -5,7 +5,7 @@
 `apps/pwa/src/lib/backend.ts` defines everything the screens need. `getBackend()` picks:
 
 - **SupabaseBackend** when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set: Supabase Auth, PostgREST + RPCs, Edge Functions, R2 or Supabase Storage.
-- **MockBackend** otherwise: the whole "server" lives in IndexedDB on the device, seeded with the same 50 demo profiles as `supabase/seed.sql`. Its rules (limits, visibility, filters, auto-flag) mirror the SQL so the demo behaves like production.
+- **MockBackend** otherwise: the whole "server" lives in IndexedDB on the device, seeded with the same 70 demo profiles as `supabase/seed.sql`. Its rules (limits, visibility, filters, auto-flag) mirror the SQL so the demo behaves like production.
 
 Both produce the same JSON shapes (`lib/types.ts`), matching the SQL function `public_profile_json()`.
 

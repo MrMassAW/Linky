@@ -19,7 +19,7 @@ Order: **Supabase → (optional) R2 → (optional) Firebase → Cloudflare Pages
    ```bash
    supabase db push
    ```
-4. **Demo profiles (optional, for a demo/staging project only):** run `supabase/seed.sql` in the SQL editor, or `psql "$DB_URL" -f supabase/seed.sql`. It creates 50 demo users around Montréal plus demo bots that like back and accept Connect. To centre them elsewhere: `pnpm gen:seed-sql --lat 48.8566 --lng 2.3522`. Don't load it into production.
+4. **Demo profiles (optional, for a demo/staging project only):** run `supabase/seed.sql` in the SQL editor, or `psql "$DB_URL" -f supabase/seed.sql`. It creates 70 demo users around Montréal plus demo bots that like back and accept Connect. To centre them elsewhere: `pnpm gen:seed-sql --lat 48.8566 --lng 2.3522`. Don't load it into production.
 5. **Auth providers** (Authentication → Providers):
    - **Email**: on by default (magic link). Set *Site URL* to your app URL and add `https://<your-app>/auth/callback` (and `http://localhost:5173/auth/callback`) to *Redirect URLs*.
    - **Google**: create an OAuth client in Google Cloud Console (Web application). Authorized redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`. Paste client ID/secret into Supabase.

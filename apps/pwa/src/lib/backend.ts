@@ -25,7 +25,7 @@ export interface SessionUser {
 
 /**
  * Everything the screens need from a backend. Two implementations:
- * - MockBackend: in-browser (IndexedDB) with 50 seeded demo profiles and demo bots.
+ * - MockBackend: in-browser (IndexedDB) with 70 seeded demo profiles and demo bots.
  * - SupabaseBackend: the real thing, used when VITE_SUPABASE_URL is set.
  */
 export interface Backend {

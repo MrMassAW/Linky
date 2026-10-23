@@ -1,4 +1,4 @@
-// Deterministic generator for ~50 demo profiles. Used by the mock backend in the
+// Deterministic generator for ~70 demo profiles. Used by the mock backend in the
 // PWA and by scripts/gen-seed-sql.ts to produce supabase/seed.sql.
 import {
   CANNABIS,
@@ -131,6 +131,26 @@ const PEOPLE: Array<[string, Gender, string, string, SeekingBucket[]]> = [
   ['Naomi', 'woman', 'she/her', 'straight', ['men']],
   ['Ezra', 'non-binary', 'they/them', 'queer', ['men', 'women', 'nonbinary']],
   ['Victor', 'man', 'he/him', 'straight', ['women']],
+  ['Juliette', 'woman', 'she/her', 'straight', ['men']],
+  ['Karim', 'man', 'he/him', 'straight', ['women']],
+  ['Sienna', 'woman', 'she/her', 'bisexual', ['men', 'women', 'nonbinary']],
+  ['Nico', 'man', 'he/him', 'gay', ['men', 'nonbinary']],
+  ['Ariane', 'woman', 'she/her', 'straight', ['men']],
+  ['Quinn', 'non-binary', 'they/them', 'pansexual', ['men', 'women', 'nonbinary']],
+  ['Raphaël', 'man', 'he/him', 'straight', ['women']],
+  ['Fatima', 'woman', 'she/her', 'straight', ['men']],
+  ['Simon', 'man', 'he/him', 'bisexual', ['men', 'women', 'nonbinary']],
+  ['Lina', 'woman', 'she/her', 'lesbian', ['women', 'nonbinary']],
+  ['Dev', 'man', 'he/him', 'straight', ['women']],
+  ['Margaux', 'woman', 'she/her', 'pansexual', ['men', 'women', 'nonbinary']],
+  ['Jordan', 'trans man', 'he/him', 'gay', ['men']],
+  ['Océane', 'woman', 'she/her', 'straight', ['men']],
+  ['Adrien', 'man', 'he/him', 'straight', ['women']],
+  ['Skye', 'genderfluid', 'they/she', 'queer', ['men', 'women', 'nonbinary']],
+  ['Mila', 'woman', 'she/her', 'straight', ['men']],
+  ['Tomás', 'man', 'he/him', 'pansexual', ['men', 'women', 'nonbinary']],
+  ['Rania', 'trans woman', 'she/her', 'bisexual', ['men', 'women', 'nonbinary']],
+  ['William', 'man', 'he/him', 'straight', ['women']],
 ];
 
 const NEIGHBOURHOODS = [
@@ -305,7 +325,7 @@ function dimPct(r: Rng, letter: string, first: string): number {
 /** Demo reference date so ages are stable regardless of when the seed runs. */
 export const DEMO_YEAR = 2026;
 
-export function generateDemoProfiles(count = 50, seed = 20261023): DemoProfile[] {
+export function generateDemoProfiles(count = 70, seed = 20261023): DemoProfile[] {
   const r = mulberry32(seed);
   const out: DemoProfile[] = [];
   for (let i = 0; i < count; i++) {

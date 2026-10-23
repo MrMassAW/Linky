@@ -38,8 +38,8 @@ describe('quiz content', () => {
 
 describe('demo profiles', () => {
   const people = generateDemoProfiles();
-  it('generates 50 deterministic, adult profiles', () => {
-    expect(people).toHaveLength(50);
+  it('generates 70 deterministic, adult profiles', () => {
+    expect(people).toHaveLength(70);
     expect(generateDemoProfiles()[7]).toEqual(people[7]);
     for (const p of people) {
       expect(2026 - Number(p.birthdate.slice(0, 4))).toBeGreaterThanOrEqual(19);
@@ -47,6 +47,6 @@ describe('demo profiles', () => {
       expect(p.scenes.length).toBeGreaterThanOrEqual(2);
       expect(new Set(p.prompts.map((x) => x.prompt)).size).toBe(3);
     }
-    expect(new Set(people.map((p) => p.id)).size).toBe(50);
+    expect(new Set(people.map((p) => p.id)).size).toBe(70);
   });
 });
