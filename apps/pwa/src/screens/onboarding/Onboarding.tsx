@@ -22,7 +22,7 @@ const STEPS = [
   { key: 'personality', title: '16-type personality', sub: 'How you recharge, think, decide and plan.' },
   { key: 'love', title: 'Love languages', sub: 'How you like to receive love, and how you give it.' },
   { key: 'lifestyle', title: 'Lifestyle & preferences', sub: 'Each answer can be shown, hidden or made a dealbreaker.' },
-  { key: 'messengers', title: 'Where to reach you', sub: 'Revealed only after you both tap Connect.' },
+  { key: 'messengers', title: 'Where to reach you', sub: 'Optional. Revealed only after you both tap Connect.' },
   { key: 'done', title: 'You’re all set', sub: '' },
 ] as const;
 

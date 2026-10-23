@@ -20,9 +20,9 @@ export function MessengersForm({ onDone, cta = 'Continue' }: { onDone: () => voi
       handle: values[m.app].trim(),
       preferred: false,
     }));
-    if (handles.length === 0) return setError('Add at least one way to reach you after you connect.');
+    // Optional: people without (or not wanting to share) a messenger keep talking with notes in Linky.
     const pref = handles.find((h) => h.app === preferred) ?? handles[0];
-    pref.preferred = true;
+    if (pref) pref.preferred = true;
     setBusy(true);
     setError(null);
     try {
@@ -39,8 +39,9 @@ export function MessengersForm({ onDone, cta = 'Continue' }: { onDone: () => voi
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted">
-        Linky isn’t a chat app. When you and a match both tap <b>Connect</b>, you’ll see each other’s handles and can
-        jump straight into your favourite messenger. Handles are never public.
+        You can always message your matches with notes here in Linky. If you’d rather move to a messenger, add it
+        below: when you and a match both tap <b>Connect</b>, you’ll see each other’s handles. Handles are never
+        public. This step is optional.
       </p>
       {MESSENGERS.map((m) => (
         <div key={m.app} className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-plum-100/60">
@@ -63,7 +64,7 @@ export function MessengersForm({ onDone, cta = 'Continue' }: { onDone: () => voi
       ))}
       <ErrorText>{error}</ErrorText>
       <Button className="w-full" onClick={save} busy={busy}>
-        {cta}
+        {MESSENGERS.some((m) => values[m.app].trim()) ? cta : 'Skip, I’ll use notes in Linky'}
       </Button>
     </div>
   );

@@ -114,7 +114,9 @@ export default function MatchDetail() {
           {both ? (
             <div className="mt-2 space-y-2">
               <p className="text-sm text-emerald-700">You’re connected. Here’s how to reach {p.name}:</p>
-              {handles?.length === 0 && <p className="text-sm text-muted">{p.name} hasn’t added a messenger yet.</p>}
+              {handles?.length === 0 && (
+                <p className="text-sm text-muted">{p.name} hasn’t added a messenger. Keep talking with notes below.</p>
+              )}
               {handles?.map((h) => {
                 const m = MESSENGERS.find((x) => x.app === h.app)!;
                 return (
