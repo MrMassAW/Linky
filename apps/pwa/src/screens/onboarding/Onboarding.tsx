@@ -37,7 +37,9 @@ export default function Onboarding() {
     if (me.onboarding_complete) nav('/discover', { replace: true });
   }, [me.onboarding_complete, nav]);
 
-  useEffect(() => window.scrollTo(0, 0), [step]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [step]);
 
   async function go(n: number) {
     setStep(n);

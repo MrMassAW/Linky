@@ -21,7 +21,7 @@ const ctx = await browser.newContext({
 });
 const page = await ctx.newPage();
 const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
+page.on('pageerror', (e) => { errors.push(e.message); console.error('pageerror:', e.stack); });
 let n = 0;
 const shot = async (name) => SHOTS && page.screenshot({ path: `${SHOTS}/${String(++n).padStart(2, '0')}-${name}.png` });
 let lastStep = '';
