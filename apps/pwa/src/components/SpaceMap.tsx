@@ -18,6 +18,29 @@ export function tierColor(score: number) {
 const clampZoom = (z: number) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z));
 const angleOf = (i: number) => i * 2.399963 + 0.5; // golden angle keeps neighbours apart
 
+/** Orbit speed in radians per second: inner orbits run faster (loosely Kepler), each face a little different. */
+const orbitSpeed = (score: number, i: number) => {
+  const wobble = 0.65 + ((i * 0.618034) % 1) * 0.7;
+  return (0.05 / Math.sqrt(orbitRadius(score) / 100)) * wobble * (i % 5 === 0 ? -1 : 1);
+};
+
+// Twinkling stars laid over the starfield, spread wider than the view so panning reveals more.
+const TWINKLES = Array.from({ length: 46 }, (_, i) => {
+  const h = (n: number) => ((Math.sin(i * 127.1 + n * 311.7) * 43758.5453) % 1 + 1) % 1;
+  return {
+    left: `${-25 + h(1) * 150}%`,
+    top: `${-25 + h(2) * 150}%`,
+    size: h(3) < 0.75 ? 2 : 4,
+    color: ['#ffffff', '#ffd6e0', '#b8e0ff', '#ffe49a'][Math.floor(h(4) * 4)],
+    duration: `${2.2 + h(5) * 3.5}s`,
+    delay: `${-h(6) * 6}s`,
+    cross: h(7) > 0.82,
+  };
+});
+
+const reducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
 /**
  * Discover as a starfield: you sit at the center and each person's face orbits at a distance
  * set by their compatibility score. Pinch, scroll or use the buttons to zoom; drag to pan.
@@ -43,6 +66,43 @@ export function SpaceMap({
   const moved = useRef(0);
   const velocity = useRef({ x: 0, y: 0, t: 0 });
   const fling = useRef(0);
+  const [time, setTime] = useState(0);
+  const [shooting, setShooting] = useState<{ id: number; left: string; top: string; angle: number } | null>(null);
+  const still = useRef(false);
+  still.current = Boolean(pickedId);
+
+  // Slow orbits. Paused while a face is picked or a finger is down so taps land where you aim.
+  useEffect(() => {
+    if (reducedMotion()) return;
+    let raf = 0;
+    let last = performance.now();
+    let acc = 0;
+    const tick = (now: number) => {
+      const dt = Math.min(100, now - last);
+      last = now;
+      if (!still.current && pointers.current.size === 0) acc += dt;
+      setTime((t) => (Math.abs(acc / 1000 - t) > 0.03 ? acc / 1000 : t));
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // Now and then, a shooting star.
+  useEffect(() => {
+    if (reducedMotion()) return;
+    let timer = 0;
+    let n = 0;
+    const schedule = () => {
+      timer = window.setTimeout(() => {
+        n += 1;
+        setShooting({ id: n, left: `${35 + Math.random() * 60}%`, top: `${Math.random() * 45}%`, angle: 20 + Math.random() * 25 });
+        schedule();
+      }, 5000 + Math.random() * 9000);
+    };
+    schedule();
+    return () => clearTimeout(timer);
+  }, []);
 
   useLayoutEffect(() => {
     const el = box.current;
@@ -192,6 +252,42 @@ export function SpaceMap({
         if (e.target === e.currentTarget) onPick(null);
       }}
     >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{ transform: `translate(${view.x * 0.3}px, ${view.y * 0.3}px)` }}
+      >
+        {TWINKLES.map((st, i) => (
+          <span
+            key={i}
+            className="animate-twinkle absolute"
+            style={{
+              left: st.left,
+              top: st.top,
+              width: st.size,
+              height: st.size,
+              background: st.color,
+              animationDuration: st.duration,
+              animationDelay: st.delay,
+              boxShadow: st.cross
+                ? `${st.size}px 0 0 ${st.color}, -${st.size}px 0 0 ${st.color}, 0 ${st.size}px 0 ${st.color}, 0 -${st.size}px 0 ${st.color}`
+                : undefined,
+            }}
+          />
+        ))}
+      </div>
+
+      {shooting && (
+        <div
+          key={shooting.id}
+          aria-hidden="true"
+          className="pointer-events-none absolute"
+          style={{ left: shooting.left, top: shooting.top, transform: `rotate(${180 - shooting.angle}deg)` }}
+        >
+          <div className="animate-shoot h-[3px] w-24 bg-[linear-gradient(270deg,#fff_0_12px,rgba(255,228,154,0.8)_12px_40px,rgba(255,228,154,0)_100%)]" onAnimationEnd={() => setShooting(null)} />
+        </div>
+      )}
+
       {RINGS.map((score) => {
         const r = orbitRadius(score) * z;
         return (
@@ -226,7 +322,7 @@ export function SpaceMap({
       {items.map((it, i) => {
         const p = it.profile;
         const score = it.compatibility.total;
-        const a = angleOf(i);
+        const a = angleOf(i) + time * orbitSpeed(score, i);
         const r = orbitRadius(score) * z;
         const x = cx + r * Math.cos(a);
         const y = cy + r * Math.sin(a);
