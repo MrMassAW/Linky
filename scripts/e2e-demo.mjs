@@ -224,14 +224,14 @@ try {
   // Right after a pan, a real tap on a filter chip still works, and RESET clears it again.
   const strongChip = page.getByRole('group', { name: 'Quick filters' }).getByRole('button', { name: /80%\+/ });
   const sb = await strongChip.boundingBox();
-  await touch('touchStart', [[sb.x + sb.width / 2, sb.y + sb.height / 2]]);
-  await touch('touchEnd', []);
+  const hit = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.outerHTML.slice(0, 90), [sb.x + sb.width / 2, sb.y + sb.height / 2]);
+  await strongChip.tap();
   await page
     .waitForFunction(() =>
       [...document.querySelectorAll('[aria-label="Quick filters"] button')].some((b) => b.textContent.includes('80%') && b.getAttribute('aria-pressed') === 'true'),
     { timeout: 8000 })
     .catch(() => {
-      throw new Error(`tap on the 80%+ chip after a pan did nothing (chip at ${JSON.stringify(sb)})`);
+      throw new Error(`tap on the 80%+ chip after a pan did nothing (chip at ${JSON.stringify(sb)}, top element there: ${hit})`);
     });
   await click('RESET');
   await page
