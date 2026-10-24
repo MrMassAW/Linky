@@ -1,18 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
-import { FeedExplainer } from '../components/FeedExplainer';
 import { LikeSheet } from '../components/LikeSheet';
 import { NO_VIEW_FILTERS, QuickFilters, STRONG_MATCH, type ViewFilters } from '../components/QuickFilters';
 import { ProfileCard, type LikeTarget } from '../components/ProfileCard';
 import { SafetySheet } from '../components/SafetySheet';
 import { QuickCard, SpaceMap } from '../components/SpaceMap';
-import { Button, ChevronLeft, Empty, ErrorText, FullPageSpinner, Logo, Sheet, XIcon } from '../components/ui';
+import { Button, ChevronLeft, ErrorText, FullPageSpinner, Logo, Sheet, XIcon } from '../components/ui';
 import { sharedThings } from '../lib/sharedThings';
 import type { FeedItem } from '../lib/types';
-
-type Mode = 'space' | 'list';
-const MODE_KEY = 'linky-discover-mode';
 
 const VIEW_KEY = 'linky-discover-filters';
 
@@ -24,13 +20,6 @@ function savedView(): ViewFilters {
   }
 }
 
-function savedMode(): Mode {
-  try {
-    return localStorage.getItem(MODE_KEY) === 'list' ? 'list' : 'space';
-  } catch {
-    return 'space';
-  }
-}
 import { useLoader, useMe, useSession } from '../state/session';
 
 export default function Discover() {
@@ -38,7 +27,8 @@ export default function Discover() {
   const me = useMe();
   const nav = useNavigate();
   const feed = useLoader(() => backend.getFeed(), [backend]);
-  const [mode, setModeState] = useState<Mode>(savedMode);
+  // People only my own filters keep out; they float on the map at half strength.
+  const near = useLoader(() => backend.getNearMatches?.() ?? Promise.resolve([]), [backend]);
   const [view, setViewState] = useState<ViewFilters>(savedView);
   // People you liked or blocked leave the map; people you passed on stay, faded, for a day.
   const [done, setDone] = useState<Set<string>>(() => new Set());
@@ -55,17 +45,6 @@ export default function Discover() {
     void backend.likesRemaining().then(setRemaining);
   }, [backend]);
 
-  const setMode = (m: Mode) => {
-    setModeState(m);
-    setPickId(null);
-    setOpenId(null);
-    try {
-      localStorage.setItem(MODE_KEY, m);
-    } catch {
-      /* private mode: the choice just isn't remembered */
-    }
-  };
-
   const setView = (v: ViewFilters) => {
     setViewState(v);
     setPickId(null);
@@ -76,28 +55,30 @@ export default function Discover() {
     }
   };
 
-  const items: FeedItem[] = useMemo(
-    () =>
-      (feed.data ?? [])
-        .filter((i) => !done.has(i.profile.id))
-        .map((i) => (passedNow[i.profile.id] ? { ...i, passed_at: passedNow[i.profile.id] } : i))
-        .filter(
-          (i) =>
-            (!view.verified || i.profile.verified) &&
-            (!view.strong || i.compatibility.total >= STRONG_MATCH) &&
-            (!view.hidePassed || !i.passed_at),
-        ),
-    [feed.data, done, passedNow, view],
-  );
+  // Everyone on the map: matches in full, plus near matches (outside a map filter or one of
+  // my profile filters) faded.
+  const { items, nearIds } = useMemo(() => {
+    const fits = (i: FeedItem) =>
+      (!view.verified || i.profile.verified) &&
+      (!view.strong || i.compatibility.total >= STRONG_MATCH) &&
+      (!view.hidePassed || !i.passed_at);
+    const all = [...(feed.data ?? []), ...(near.data ?? [])]
+      .filter((i) => !done.has(i.profile.id))
+      .map((i) => (passedNow[i.profile.id] ? { ...i, passed_at: passedNow[i.profile.id] } : i))
+      .filter((i) => !(view.hidePassed && i.passed_at));
+    const nearSet = new Set((near.data ?? []).map((i) => i.profile.id));
+    for (const i of all) if (!fits(i)) nearSet.add(i.profile.id);
+    return { items: all, nearIds: nearSet };
+  }, [feed.data, near.data, done, passedNow, view]);
   const shared = useMemo(
-    () => Object.fromEntries((feed.data ?? []).map((i) => [i.profile.id, sharedThings(me, i.profile)])),
-    [feed.data, me],
+    () => Object.fromEntries(items.map((i) => [i.profile.id, sharedThings(me, i.profile)])),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [feed.data, near.data, me],
   );
-  const queue = items.filter((i) => !i.passed_at);
-  const focusId = mode === 'list' ? (queue[0]?.profile.id ?? null) : (openId ?? pickId);
-  const item = items.find((i) => i.profile.id === focusId);
+  const matchCount = items.length - nearIds.size;
+  const item = items.find((i) => i.profile.id === (openId ?? pickId));
   const picked = items.find((i) => i.profile.id === pickId);
-  const opened = mode === 'space' ? items.find((i) => i.profile.id === openId) : undefined;
+  const opened = items.find((i) => i.profile.id === openId);
 
   const reset = () => {
     setTarget(null);
@@ -167,6 +148,12 @@ export default function Discover() {
 
   if (feed.loading) return <FullPageSpinner />;
 
+  const reloadPeople = async () => {
+    const [f, n] = await Promise.all([backend.getFeed(), backend.getNearMatches?.() ?? Promise.resolve([])]);
+    feed.setData(f);
+    near.setData(n);
+  };
+
   // RESET on the map: map-only filters off and every must-match answer back to a plain answer.
   const resetFilters = async () => {
     setView(NO_VIEW_FILTERS);
@@ -175,18 +162,17 @@ export default function Discover() {
     const attrs = Object.fromEntries(keys.map((k) => [k, { ...me.attributes[k]!, is_dealbreaker: false }]));
     await backend.saveAttributes(attrs);
     await refresh();
-    feed.setData(await backend.getFeed());
+    await reloadPeople();
   };
 
-  const filters = (inline = false) => (
+  const filters = () => (
     <QuickFilters
-      inline={inline}
       view={view}
       onView={setView}
       onChanged={async () => {
         setPickId(null);
         setOpenId(null);
-        feed.setData(await backend.getFeed());
+        await reloadPeople();
       }}
     />
   );
@@ -196,19 +182,6 @@ export default function Discover() {
       <header className="flex items-center justify-between py-3">
         <Logo className="!text-2xl" />
         <div className="flex items-center gap-2">
-          <div className="flex rounded-full bg-white p-0.5 text-xs font-semibold shadow-sm" role="group" aria-label="Discover view">
-            {(['space', 'list'] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                aria-pressed={mode === m}
-                onClick={() => setMode(m)}
-                className={`min-h-8 rounded-full px-3 capitalize ${mode === m ? 'bg-plum-700 text-white' : 'text-plum-700'}`}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
           <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-plum-700 shadow-sm">
             ♥ {remaining ?? '…'}
           </span>
@@ -222,48 +195,41 @@ export default function Discover() {
       )}
       <ErrorText>{feed.error ?? error}</ErrorText>
 
-      {(mode === 'list' || items.length === 0) && (
-        <div className="relative z-20 mb-3 rounded-2xl bg-[#0c0720] font-retro text-[#f1e8ff]">{filters(true)}</div>
-      )}
-
-      {(mode === 'space' ? items.length === 0 : queue.length === 0) ? (
-        <Empty icon="🌙" title="You’re all caught up">
-          New people show up every day. You can also widen your filters.
-          <div className="mt-5 flex justify-center gap-2">
-            <Button variant="secondary" onClick={() => nav('/me/filters')}>Adjust filters</Button>
-            <Button variant="ghost" onClick={() => { setDone(new Set()); setPassedNow({}); void feed.reload(); }}>Refresh</Button>
-          </div>
-          <FeedExplainer key={done.size + Object.keys(passedNow).length} />
-        </Empty>
-      ) : mode === 'space' ? (
-        <div className="h-[calc(100dvh-10.5rem)] min-h-[440px]">
-          <SpaceMap items={items} shared={shared} myPhoto={me.photos[0]?.url} pickedId={pickId} onPick={setPickId} toolbar={filters()}
-            onReset={() => void resetFilters()}
-          >
-            {picked && !opened && (
-              <QuickCard
-                key={picked.profile.id}
-                item={picked}
-                shared={shared[picked.profile.id]}
-                onClose={() => setPickId(null)}
-                onPass={() => void skip(picked)}
-                onOpen={() => setOpenId(picked.profile.id)}
-                onLike={() => {
-                  const ph = [...picked.profile.photos].sort((a, b) => a.position - b.position)[0];
-                  if (ph) askLike({ type: 'photo', id: ph.id, preview: { url: ph.url } });
-                  else setOpenId(picked.profile.id);
-                }}
-              />
-            )}
-          </SpaceMap>
-        </div>
-      ) : (
-        item && (
-          <div key={item.profile.id} className="animate-fade-in pb-20">
-            {fullCard(item)}
-          </div>
-        )
-      )}
+      <div className="h-[calc(100dvh-10.5rem)] min-h-[440px]">
+        <SpaceMap
+          items={items}
+          nearIds={nearIds}
+          shared={shared}
+          myPhoto={me.photos[0]?.url}
+          pickedId={pickId}
+          onPick={setPickId}
+          toolbar={filters()}
+          onReset={() => void resetFilters()}
+          note={
+            matchCount === 0
+              ? items.length
+                ? 'Nobody fits all your filters right now. Faded faces are near matches.'
+                : 'Nobody new nearby yet. Check back tomorrow or loosen your filters.'
+              : undefined
+          }
+        >
+          {picked && !opened && (
+            <QuickCard
+              key={picked.profile.id}
+              item={picked}
+              shared={shared[picked.profile.id]}
+              onClose={() => setPickId(null)}
+              onPass={() => void skip(picked)}
+              onOpen={() => setOpenId(picked.profile.id)}
+              onLike={() => {
+                const ph = [...picked.profile.photos].sort((a, b) => a.position - b.position)[0];
+                if (ph) askLike({ type: 'photo', id: ph.id, preview: { url: ph.url } });
+                else setOpenId(picked.profile.id);
+              }}
+            />
+          )}
+        </SpaceMap>
+      </div>
 
       {opened &&
         createPortal(

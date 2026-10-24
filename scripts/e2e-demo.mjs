@@ -157,14 +157,17 @@ try {
   // Chips: FILTERS, distance, age, verified, 80%+, then one per lifestyle answer.
   const qf = page.getByRole('group', { name: 'Quick filters' }).locator('button').nth(5);
   const qfLabel = await qf.textContent();
-  const facesBefore = await page.locator('[data-face]').count();
+  const facesBefore = await page.locator('[data-face]:not([data-near])').count();
   await qf.click();
   await page.waitForFunction((l) => [...document.querySelectorAll('[aria-label="Quick filters"] button')].some((b) => b.getAttribute('aria-pressed') === 'true' && b.textContent.includes(l)), qfLabel);
-  const facesFiltered = await page.locator('[data-face]').count();
+  const facesFiltered = await page.locator('[data-face]:not([data-near])').count();
+  // Whoever that filter keeps out stays on the map as a faded near match.
+  const nearCount = await page.locator('[data-face][data-near]').count();
+  if (nearCount === 0) throw new Error('filtered-out people should stay on the map as near matches');
   await shot('discover-quick-filter');
   await page.getByRole('group', { name: 'Quick filters' }).locator('button').nth(5).click();
-  await page.waitForFunction((n) => document.querySelectorAll('[data-face]').length === n, facesBefore);
-  console.log(`  quick filter "${qfLabel}": ${facesBefore} -> ${facesFiltered} faces, then back`);
+  await page.waitForFunction((n) => document.querySelectorAll('[data-face]:not([data-near])').length === n, facesBefore);
+  console.log(`  quick filter "${qfLabel}": ${facesBefore} -> ${facesFiltered} matches (+${nearCount} near), then back`);
   // The FILTERS panel: age, distance, who to show, map-only filters, must-match answers.
   await page.getByRole('button', { name: 'All filters' }).click();
   const panel = page.getByRole('dialog', { name: 'Filters' });
@@ -172,13 +175,13 @@ try {
   await shot('discover-filter-panel');
   await panel.getByRole('button', { name: 'APPLY' }).click();
   await panel.waitFor({ state: 'detached' });
-  const strong = await page.locator('[data-face]').count();
-  for (const f of await page.locator('[data-face]').all()) {
+  const strong = await page.locator('[data-face]:not([data-near])').count();
+  for (const f of await page.locator('[data-face]:not([data-near])').all()) {
     const pct = Number((await f.getAttribute('aria-label')).match(/(\d+)% match/)[1]);
     if (pct < 80) throw new Error(`80%+ filter let through a ${pct}% match`);
   }
   await page.getByRole('group', { name: 'Quick filters' }).getByRole('button', { name: /80%\+/ }).click();
-  await page.waitForFunction((n) => document.querySelectorAll('[data-face]').length === n, facesBefore);
+  await page.waitForFunction((n) => document.querySelectorAll('[data-face]:not([data-near])').length === n, facesBefore);
   console.log(`  80%+ filter: ${facesBefore} -> ${strong} faces, then back`);
   const zoomBefore = await map.getAttribute('data-zoom');
   await map.hover();
@@ -223,12 +226,19 @@ try {
   const sb = await strongChip.boundingBox();
   await touch('touchStart', [[sb.x + sb.width / 2, sb.y + sb.height / 2]]);
   await touch('touchEnd', []);
-  await page.waitForFunction(() =>
-    [...document.querySelectorAll('[aria-label="Quick filters"] button')].some((b) => b.textContent.includes('80%') && b.getAttribute('aria-pressed') === 'true'),
-  );
+  await page
+    .waitForFunction(() =>
+      [...document.querySelectorAll('[aria-label="Quick filters"] button')].some((b) => b.textContent.includes('80%') && b.getAttribute('aria-pressed') === 'true'),
+    { timeout: 8000 })
+    .catch(() => {
+      throw new Error(`tap on the 80%+ chip after a pan did nothing (chip at ${JSON.stringify(sb)})`);
+    });
   await click('RESET');
-  await page.waitForFunction((n) => document.querySelectorAll('[data-face]').length === n, facesBefore);
-  if ((await strongChip.getAttribute('aria-pressed')) !== 'false') throw new Error('RESET did not clear the 80%+ filter');
+  await page
+    .waitForFunction((n) => document.querySelectorAll('[data-face]:not([data-near])').length === n, facesBefore, { timeout: 8000 })
+    .catch(async () => {
+      throw new Error(`RESET: expected ${facesBefore} faces, saw ${await page.locator('[data-face]:not([data-near])').count()}, 80%+ pressed=${await strongChip.getAttribute('aria-pressed')}`);
+    });
   // Stars are shared things: tapping one highlights who shares it.
   const hub = page.locator('[data-hub]').first();
   console.log(`  stars: ${(await page.locator('[data-hub]').allTextContents()).join(' | ')}`);
@@ -243,7 +253,7 @@ try {
   await hub.dispatchEvent('click');
   await hub2.dispatchEvent('click');
   const openFirst = async () => {
-    await page.locator('[data-face]:not([aria-label$="passed"])').first().dispatchEvent('click');
+    await page.locator('[data-face]:not([aria-label$="passed"]):not([data-near])').first().dispatchEvent('click');
     await page.locator('section[aria-label$="quick look"]').waitFor();
   };
   await openFirst();

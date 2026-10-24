@@ -100,6 +100,8 @@ const reducedMotion = () =>
  */
 export function SpaceMap({
   items,
+  nearIds,
+  note,
   shared,
   myPhoto,
   pickedId,
@@ -109,6 +111,10 @@ export function SpaceMap({
   children,
 }: {
   items: FeedItem[];
+  /** Near matches: shown at half strength. */
+  nearIds?: Set<string>;
+  /** Replaces the usual hint line at the bottom. */
+  note?: string;
   /** What I share with each person, by profile id. */
   shared: Record<string, SharedThing[]>;
   myPhoto?: string;
@@ -435,7 +441,7 @@ export function SpaceMap({
           const score = n.it.compatibility.total;
           const color = tierColor(score);
           const w = Math.max(1, (score - 50) / 14) * Math.min(1.3, faceScale);
-          const op = n.it.passed_at && !(picked === n) ? 0.06 : lit(n) ? 0.75 : 0.08;
+          const op = (n.it.passed_at && !(picked === n) ? 0.06 : lit(n) ? 0.75 : 0.08) * (nearIds?.has(n.it.profile.id) && picked !== n ? 0.5 : 1);
           return n.hubs.length ? (
             n.hubs.map((k) => (
               <line key={`${n.it.profile.id}-${k}`} x1={hubPts[k].x} y1={hubPts[k].y} x2={n.x} y2={n.y} stroke={color} strokeWidth={w} opacity={op} />
@@ -502,12 +508,18 @@ export function SpaceMap({
           <div
             key={p.id}
             className="absolute transition-opacity duration-500"
-            style={{ left: x - s / 2, top: y - s / 2, zIndex: picked ? 5 : 1, opacity: passed && !picked ? 0.1 : dim ? 0.3 : 1 }}
+            style={{
+              left: x - s / 2,
+              top: y - s / 2,
+              zIndex: picked ? 5 : 1,
+              opacity: passed && !picked ? 0.1 : dim ? 0.3 : nearIds?.has(p.id) && !picked ? 0.5 : 1,
+            }}
           >
             <button
               type="button"
               data-face={p.id}
-              aria-label={`${p.name}, ${score}% match${passed ? ', passed' : ''}`}
+              data-near={nearIds?.has(p.id) || undefined}
+              aria-label={`${p.name}, ${score}% match${passed ? ', passed' : nearIds?.has(p.id) ? ', near match' : ''}`}
               aria-pressed={picked}
               onClick={() => onPick(p.id)}
               className="block overflow-hidden rounded-full bg-[#2a1d48] transition-transform active:scale-90"
@@ -553,7 +565,7 @@ export function SpaceMap({
         <p className="pointer-events-none absolute bottom-3 left-4 right-24 text-lg leading-5 text-[#9d8fc0]">
           {hubPick.length
             ? `${sharingAll} ${sharingAll === 1 ? 'person shares' : 'people share'} ${hubPick.length > 1 ? 'all of these' : 'this'}. Tap more stars to narrow down.`
-            : 'Stars = what you share. Closer = stronger match. Tap stars or a face.'}
+            : (note ?? 'Stars = what you share. Closer = stronger match. Tap stars or a face.')}
         </p>
       )}
 

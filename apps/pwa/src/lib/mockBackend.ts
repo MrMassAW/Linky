@@ -547,6 +547,44 @@ export class MockBackend implements Backend, DemoTools {
     }));
   }
 
+  async getNearMatches(limit = 8): Promise<FeedItem[]> {
+    const db = await this.load();
+    const me = this.resolved(db, this.me(db));
+    const meM = toMatchable(me);
+    // Me with my own filters lifted; their filters on me still apply.
+    const relaxed = {
+      ...meM,
+      preferences: { ...meM.preferences, age_min: 18, age_max: 99, distance_km: null },
+      attributes: Object.fromEntries(
+        Object.entries(meM.attributes).map(([k, v]) => [k, v && { ...v, is_dealbreaker: false }]),
+      ) as Attributes,
+      kinks: meM.kinks && { ...meM.kinks, filter_shared: false },
+    };
+    const acted = new Set([
+      ...db.likes.filter((l) => l.from_id === me.id).map((l) => l.to_id),
+      ...db.skips.filter((s) => s.from_id === me.id).map((s) => s.to_id),
+    ]);
+    return Object.values(db.profiles)
+      .filter(
+        (p) =>
+          p.id !== me.id &&
+          p.onboarding_complete &&
+          !p.banned &&
+          !p.deletion_requested_at &&
+          !acted.has(p.id) &&
+          !this.matchBetween(db, me.id, p.id) &&
+          !this.blocked(db, me.id, p.id),
+      )
+      .map((p) => this.resolved(db, p))
+      .filter((p) => {
+        const c = toMatchable(p);
+        return hardFilter(meM, c) !== null && hardFilter(relaxed, c) === null;
+      })
+      .map((p) => ({ profile: this.view(db, p), compatibility: compatibility(meM, toMatchable(p)), passed_at: null }))
+      .sort((a, b) => b.compatibility.total - a.compatibility.total)
+      .slice(0, limit);
+  }
+
   async getPublicProfile(id: string) {
     const db = await this.load();
     const p = db.profiles[id];

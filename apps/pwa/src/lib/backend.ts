@@ -58,6 +58,11 @@ export interface Backend {
   getFeed(): Promise<FeedItem[]>;
   /** Why people are missing from Discover: counts per reason (optional; the demo backend has it). */
   explainFeed?(): Promise<FeedExplanation>;
+  /**
+   * People kept out only by MY filters (age, distance, must-match answers), best match first, so the
+   * map can show them faded. Never anyone whose own filters exclude me. Optional; the demo backend has it.
+   */
+  getNearMatches?(limit?: number): Promise<FeedItem[]>;
   getPublicProfile(id: string): Promise<PublicProfile | null>;
   like(toId: string, targetType: LikeTargetType, targetId: string, comment: string): Promise<LikeResult>;
   skip(toId: string): Promise<void>;
