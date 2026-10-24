@@ -39,7 +39,7 @@ const list = (a: Attributes, k: AttributeKey): string[] => {
   return Array.isArray(v) ? v : typeof v === 'string' ? [v] : [];
 };
 
-/** Lifestyle similarity 0–100 over drinking, cannabis, smoking, kids, pets and goal. */
+/** Lifestyle similarity 0–100 over drinking, cannabis, smoking, kids, pets and goals (the last two multi-select). */
 export function lifestyleScore(a: Attributes, b: Attributes): number | null {
   const parts: number[] = [];
   for (const key of ['drinking', 'cannabis', 'smoking'] as const) {
@@ -61,9 +61,12 @@ export function lifestyleScore(a: Attributes, b: Attributes): number | null {
   const kidsA = str(a, 'kids_want');
   const kidsB = str(b, 'kids_want');
   if (kidsA && kidsB) parts.push(lookupSymmetric(KIDS_WANT_SIMILARITY, kidsA, kidsB));
-  const petsA = str(a, 'pets');
-  const petsB = str(b, 'pets');
-  if (petsA && petsB) parts.push(petSimilarity(petsA, petsB));
+  // Pets are multi-select too; the worst clash wins (an allergy outweighs a shared dog).
+  const petsA = list(a, 'pets');
+  const petsB = list(b, 'pets');
+  if (petsA.length && petsB.length) {
+    parts.push(Math.min(...petsA.flatMap((x) => petsB.map((y) => petSimilarity(x, y)))));
+  }
   if (parts.length === 0) return null;
   return Math.round((parts.reduce((s, n) => s + n, 0) / parts.length) * 100);
 }

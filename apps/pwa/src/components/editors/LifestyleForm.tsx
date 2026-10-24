@@ -7,7 +7,7 @@ import { Button, Chip, ErrorText, Toggle } from '../ui';
 const SINGLE: AttributeKey[] = ['goal', 'drinking', 'cannabis', 'smoking', 'pets', 'kids_have', 'kids_want', 'religion', 'politics'];
 const OPTIONAL = new Set<AttributeKey>(['religion', 'politics']);
 /** Questions where more than one answer can be true at once. */
-const MULTI = new Set<AttributeKey>(['goal']);
+const MULTI = new Set<AttributeKey>(['goal', 'pets']);
 
 const blank = (): AttributeSetting => ({ value: null, visible: true, is_dealbreaker: false });
 

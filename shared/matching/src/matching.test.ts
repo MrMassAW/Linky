@@ -98,6 +98,12 @@ describe('lifestyle', () => {
     expect(lifestyleScore(g(['short-term', 'long-term']), g('long-term'))).toBe(100);
     expect(lifestyleScore(g(['short-term', 'friends']), g('long-term'))).toBe(30);
   });
+
+  it('lets an allergy outweigh a shared pet when pets are multi-select', () => {
+    const p = (v: string | string[]) => ({ pets: { value: v, visible: true, is_dealbreaker: false } });
+    expect(lifestyleScore(p(['have-dog', 'like-pets']), p('have-dog'))).toBe(90);
+    expect(lifestyleScore(p(['have-dog', 'allergic']), p('have-dog'))).toBe(10);
+  });
 });
 
 describe('hard filters', () => {
