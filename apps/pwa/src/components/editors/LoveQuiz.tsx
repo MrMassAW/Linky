@@ -33,6 +33,9 @@ export function LoveQuiz({ onDone, cta = 'Continue' }: { onDone: () => void; cta
           Two short rounds of “which means more to you?”: first how you like to <b>receive</b> love (15), then how
           you naturally <b>give</b> it (10). Matching compares your giving with their receiving, both ways.
         </p>
+        <p className="text-xs text-muted">
+          An original quiz inspired by the love languages idea. Not affiliated with or endorsed by The 5 Love Languages®.
+        </p>
         <Button className="w-full" onClick={() => { setI(0); setPicks({}); setStage('receive'); }}>
           Start (≈2 min)
         </Button>

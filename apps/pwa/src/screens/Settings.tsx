@@ -163,6 +163,20 @@ export default function Settings() {
         >
           Sign out
         </Button>
+        <details className="rounded-2xl bg-white px-4 py-3 text-xs text-muted">
+          <summary className="cursor-pointer text-sm font-semibold text-plum-700">Credits and licenses</summary>
+          <ul className="mt-2 list-disc space-y-1 pl-4">
+            <li>
+              Place names from <a className="underline" href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a>,
+              licensed under <a className="underline" href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a> (converted and trimmed).
+            </li>
+            <li>Fonts: Inter, Fraunces, Press Start 2P and VT323, under the SIL Open Font License 1.1.</li>
+            <li>Face checks use MediaPipe and TensorFlow.js (Apache 2.0); photo screening uses NSFWJS (MIT).</li>
+            <li>The personality quiz is original and not affiliated with the Myers-Briggs Company or the MBTI® assessment.</li>
+            <li>The love-language quiz is original and not affiliated with The 5 Love Languages®.</li>
+            <li>Open-source software notices ship with the source code.</li>
+          </ul>
+        </details>
         <p className="text-center text-xs text-muted">Linky {backend.mode === 'mock' ? 'demo' : ''} · v0.1 · built {import.meta.env.VITE_BUILD}</p>
       </div>
     </div>

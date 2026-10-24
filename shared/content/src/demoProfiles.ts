@@ -159,86 +159,86 @@ const NEIGHBOURHOODS = [
 ];
 
 const ANSWERS: Record<string, string[]> = {
-  'A perfect Sunday looks like…': [
+  'My ideal lazy day includes…': [
     'Farmers market, an ambitious brunch recipe, and a nap I will deny taking.',
     'Long run, longer breakfast, and a museum I have been meaning to visit for a year.',
     'Coffee on the balcony, a crossword in pen, and dinner with friends who stay too late.',
     'Thrifting in the morning, cooking something slow in the afternoon.',
   ],
-  "I'm weirdly attracted to…": [
+  "An oddly specific thing I find charming…": [
     'People who can explain their niche hobby for 20 minutes with total sincerity.',
     'Good handwriting. Unreasonably so.',
     'Anyone who returns their shopping cart.',
     'Competence. Watching someone parallel park perfectly does something to me.',
   ],
-  "We'll get along if…": [
+  "We should probably meet if you…": [
     'You think pineapple on pizza is fine and debating it is more fun than winning.',
     'You are up for spontaneous road trips with a carefully curated playlist.',
     'You laugh at your own jokes. I will too.',
     'You like dogs more than you like most people.',
   ],
-  'My simple pleasures are…': [
+  'Small things that make my day…': [
     'Fresh sheets, the first sip of coffee, and a perfectly ripe avocado.',
     'Walking home after a concert with my ears still ringing.',
     'Reading on the metro and missing my stop because the chapter got good.',
   ],
-  'The way to win me over is…': [
+  'Impress me by…': [
     'Remember the small things I mention. Bonus points for snacks.',
     'Bring me to your favourite hole-in-the-wall restaurant.',
     'Be curious. Ask me a second question.',
   ],
-  'I geek out on…': [
+  'I could talk for hours about…': [
     'Bouldering grades, coffee extraction ratios, and 90s sci-fi.',
     'Urban planning. Ask me about bike lanes at your own risk.',
     'Fermentation. My fridge is 40% jars.',
     'Board game rulebooks. I read them for fun.',
   ],
-  'My most irrational fear is…': [
+  'A fear I know makes no sense…': [
     'Geese. They know what they did.',
     'Leaving a voicemail.',
     'The deep end of a lake where you cannot see the bottom.',
   ],
-  'Two truths and a lie…': [
+  'Guess which one is false…': [
     'I have met a famous chef, I can juggle, I have never seen Star Wars.',
     'I speak three languages, I was a child actor, I hate cilantro.',
     'I ran a marathon, I own 40 plants, I have never been on a plane.',
   ],
-  'I go crazy for…': [
+  'I will never say no to…': [
     'Dumplings in any form, from any country.',
     'Thunderstorms when I am already inside.',
     'Live jazz in tiny basements.',
   ],
-  "I'll fall for you if…": [
+  "Bonus points if you…": [
     'You send me songs that remind you of me.',
     'You can make me laugh when I am hangry.',
     'You show up on time. I know, low bar, but here we are.',
   ],
-  'A life goal of mine is…': [
+  'Someday I want to…': [
     'Open a tiny bakery that only sells three things, all perfect.',
     'Hike the full length of a long-distance trail.',
     'Learn to sail and disappear for a summer.',
   ],
-  'The key to my heart is…': [
+  'The quickest way to make me smile…': [
     'Inside jokes and outside adventures.',
     'Patience and a good cheese plate.',
     'Kindness to waiters.',
   ],
-  "I'm convinced that…": [
+  "A hill I will gladly die on…": [
     'Breakfast for dinner is the best kind of dinner.',
     'Every city has one perfect bench, and I have found it here.',
     'Cats understand everything and simply choose not to care.',
   ],
-  'Green flags I look for…': [
+  'Signs we will click…': [
     'Has a close friend group, calls their grandma, tips well.',
     'Says sorry without a "but" after it.',
     'Gets excited about other people’s wins.',
   ],
-  'Typical Friday night…': [
+  'My Friday nights usually involve…': [
     'Pizza, a horror movie, and covering my eyes at the good parts.',
     'Dinner with friends that turns into karaoke against my will.',
     'Climbing gym, then tacos.',
   ],
-  'Dating me is like…': [
+  'Dating me comes with…': [
     'A group project where I do the snacks and the spreadsheet.',
     'A playlist on shuffle: mostly bangers, occasional jazz.',
     'A golden retriever with a planner.',

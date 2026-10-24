@@ -54,7 +54,7 @@ import {
 
 const DB_VERSION = 1;
 /** Bump when generated demo profiles change; stored demos are refreshed in place. */
-const DEMO_REVISION = 2;
+const DEMO_REVISION = 3;
 const DEFAULT_CENTER: GeoPoint = { lat: 45.5017, lng: -73.5673 }; // Montréal
 const BOT_DELAY_MS = 4000;
 

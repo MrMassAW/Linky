@@ -1,6 +1,6 @@
 # Linky
 
-A Hinge-style dating app for verified humans that matches on **16-type personality** and **love languages**, then hands the conversation off to the messenger people already use. This repo holds **Phase 1: the installable PWA demo**, built to the v1 product spec.
+A prompt-based dating app for verified humans that matches on **16-type personality** and **love languages**, then hands the conversation off to the messenger people already use. This repo holds **Phase 1: the installable PWA demo**, built to the v1 product spec.
 
 ## Try the demo in 1 minute
 
@@ -66,4 +66,4 @@ Design notes, privacy model and known limitations are in **[docs/ARCHITECTURE.md
 
 City search uses place data from [GeoNames](https://www.geonames.org/) (CC BY 4.0), bundled offline (`pnpm gen:cities`).
 
-The personality quiz is an original 16-type question set. It is not affiliated with the Myers-Briggs Company or the MBTI® assessment.
+The personality quiz is an original 16-type question set. It is not affiliated with the Myers-Briggs Company or the MBTI® assessment. The love-language quiz is likewise original and not affiliated with The 5 Love Languages®. See [docs/IP-REVIEW.md](docs/IP-REVIEW.md) for the full IP review.

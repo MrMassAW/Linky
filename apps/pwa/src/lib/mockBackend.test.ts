@@ -9,7 +9,7 @@ async function onboard(b: MockBackend) {
   await b.savePreferences({ age_min: 21, age_max: 45, distance_km: 100, genders_wanted: ['men', 'women', 'nonbinary'] });
   await b.savePersonality({ type: 'INFP', ...scoresFromType('INFP'), visible: true });
   await b.saveLoveLanguage({ receive: [30, 30, 10, 10, 20], give: [20, 30, 10, 20, 20], visible: true });
-  await b.savePrompts([{ prompt: 'A perfect Sunday looks like…', answer: 'Pancakes', position: 0 }]);
+  await b.savePrompts([{ prompt: 'My ideal lazy day includes…', answer: 'Pancakes', position: 0 }]);
   await b.addPhoto(new Blob(['x'], { type: 'image/webp' }), 0.01);
   await b.saveHandles([{ app: 'telegram', handle: 'tess', preferred: true }]);
   await b.submitVerification({ passed: true, challenges: ['blink'], liveness_score: 1, face_match_score: 0.8 });
