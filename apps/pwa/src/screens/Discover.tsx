@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { FeedExplainer } from '../components/FeedExplainer';
 import { LikeSheet } from '../components/LikeSheet';
+import { QuickFilters } from '../components/QuickFilters';
 import { ProfileCard, type LikeTarget } from '../components/ProfileCard';
 import { SafetySheet } from '../components/SafetySheet';
 import { QuickCard, SpaceMap } from '../components/SpaceMap';
@@ -163,6 +164,14 @@ export default function Discover() {
         </div>
       </header>
 
+      <QuickFilters
+        onChanged={async () => {
+          setPickId(null);
+          setOpenId(null);
+          feed.setData(await backend.getFeed());
+        }}
+      />
+
       {me.paused && (
         <div className="mb-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Your profile is paused, so nobody can see you. <Link to="/me/settings" className="font-semibold underline">Unpause</Link>
@@ -180,7 +189,7 @@ export default function Discover() {
           <FeedExplainer key={done.size + Object.keys(passedNow).length} />
         </Empty>
       ) : mode === 'space' ? (
-        <div className="h-[calc(100dvh-10.5rem)] min-h-[440px]">
+        <div className="h-[calc(100dvh-13rem)] min-h-[440px]">
           <SpaceMap items={items} shared={shared} myPhoto={me.photos[0]?.url} pickedId={pickId} onPick={setPickId}>
             {picked && !opened && (
               <QuickCard

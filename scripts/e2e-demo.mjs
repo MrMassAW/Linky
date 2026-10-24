@@ -153,6 +153,17 @@ try {
   await map.waitFor();
   await page.locator('[data-face]').first().waitFor();
   await shot('discover-space');
+  // Quick filters: one tap turns an answer into a dealbreaker, another turns it back.
+  const qf = page.getByRole('group', { name: 'Quick filters' }).locator('button').nth(1);
+  const qfLabel = await qf.textContent();
+  const facesBefore = await page.locator('[data-face]').count();
+  await qf.click();
+  await page.waitForFunction((l) => [...document.querySelectorAll('[aria-label="Quick filters"] button')].some((b) => b.getAttribute('aria-pressed') === 'true' && b.textContent.includes(l)), qfLabel);
+  const facesFiltered = await page.locator('[data-face]').count();
+  await shot('discover-quick-filter');
+  await page.getByRole('group', { name: 'Quick filters' }).locator('button').nth(1).click();
+  await page.waitForFunction((n) => document.querySelectorAll('[data-face]').length === n, facesBefore);
+  console.log(`  quick filter "${qfLabel}": ${facesBefore} -> ${facesFiltered} faces, then back`);
   const zoomBefore = await map.locator('text=/^x\\d/').textContent();
   await map.hover();
   await page.mouse.wheel(0, -400);
