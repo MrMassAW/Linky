@@ -114,7 +114,8 @@ export function SpaceMap({
   onPick: (id: string | null) => void;
   children?: ReactNode;
 }) {
-  const [hubPick, setHubPick] = useState<number | null>(null);
+  // Stars you've tapped; faces light up when they share every one of them.
+  const [hubPick, setHubPick] = useState<number[]>([]);
   const { hubs, hubAngle, nodes } = useMemo(() => layoutConstellation(items, shared), [items, shared]);
   const box = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 360, h: 560 });
@@ -304,7 +305,8 @@ export function SpaceMap({
   const picked = nodes.find((n) => n.it.profile.id === pickedId);
   const placed = nodes.map((n, i) => ({ ...n, ...at(n.angle + sway(i, time), ringR(n.it.compatibility.total)) }));
   const lit = (n: Node) =>
-    hubPick !== null ? n.hubs.includes(hubPick) : picked ? n === picked : true;
+    hubPick.length ? hubPick.every((k) => n.hubs.includes(k)) : picked ? n === picked : true;
+  const sharingAll = hubPick.length ? nodes.filter(lit).length : 0;
 
   return (
     <div
@@ -332,7 +334,7 @@ export function SpaceMap({
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onPick(null);
-          setHubPick(null);
+          setHubPick([]);
         }
       }}
     >
@@ -394,7 +396,7 @@ export function SpaceMap({
             y2={h.y}
             stroke="#ffe49a"
             strokeWidth={2.5}
-            opacity={hubPick === null ? (picked ? (picked.hubs.includes(k) ? 0.9 : 0.15) : 0.7) : hubPick === k ? 0.95 : 0.12}
+            opacity={!hubPick.length ? (picked ? (picked.hubs.includes(k) ? 0.9 : 0.15) : 0.7) : hubPick.includes(k) ? 0.95 : 0.12}
           />
         ))}
         {placed.map((n) => {
@@ -426,7 +428,7 @@ export function SpaceMap({
       </div>
 
       {hubs.map((h, k) => {
-        const on = hubPick === k;
+        const on = hubPick.includes(k);
         const count = nodes.filter((n) => n.hubs.includes(k)).length;
         return (
           <button
@@ -436,7 +438,7 @@ export function SpaceMap({
             aria-pressed={on}
             aria-label={`${h.label}: ${count} people share this with you`}
             onClick={() => {
-              setHubPick(on ? null : k);
+              setHubPick(on ? hubPick.filter((x) => x !== k) : [...hubPick, k]);
               onPick(null);
             }}
             className="absolute z-[3] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap px-1.5 text-base leading-5 active:translate-y-[calc(-50%+1px)]"
@@ -446,7 +448,7 @@ export function SpaceMap({
               color: on ? '#0c0720' : '#ffe49a',
               background: on ? '#ffe49a' : '#1a1033',
               boxShadow: '0 -2px 0 0 #ffe49a, 0 2px 0 0 #ffe49a, -2px 0 0 0 #ffe49a, 2px 0 0 0 #ffe49a',
-              opacity: hubPick === null || on ? 1 : 0.5,
+              opacity: !hubPick.length || on ? 1 : 0.5,
             }}
           >
             {h.label} <span className="opacity-70">{count}</span>
@@ -509,7 +511,7 @@ export function SpaceMap({
           type="button"
           onClick={() => {
             setView({ z: null, x: 0, y: 0 });
-            setHubPick(null);
+            setHubPick([]);
           }}
           className="mt-1 h-11 px-1 font-pixel text-[8px] text-[#c9b8ea] underline"
         >
@@ -519,7 +521,9 @@ export function SpaceMap({
 
       {!pickedId && (
         <p className="pointer-events-none absolute bottom-3 left-4 right-16 text-lg leading-5 text-[#9d8fc0]">
-          Stars = what you share. Closer = stronger match. Tap a star or a face.
+          {hubPick.length
+            ? `${sharingAll} ${sharingAll === 1 ? 'person shares' : 'people share'} ${hubPick.length > 1 ? 'all of these' : 'this'}. Tap more stars to narrow down.`
+            : 'Stars = what you share. Closer = stronger match. Tap stars or a face.'}
         </p>
       )}
 

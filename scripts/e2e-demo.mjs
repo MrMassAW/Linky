@@ -196,10 +196,16 @@ try {
   // Stars are shared things: tapping one highlights who shares it.
   const hub = page.locator('[data-hub]').first();
   console.log(`  stars: ${(await page.locator('[data-hub]').allTextContents()).join(' | ')}`);
+  const hub2 = page.locator('[data-hub]').nth(1);
   await hub.dispatchEvent('click');
-  if ((await hub.getAttribute('aria-pressed')) !== 'true') throw new Error('star did not toggle on');
+  await hub2.dispatchEvent('click');
+  if ((await hub.getAttribute('aria-pressed')) !== 'true' || (await hub2.getAttribute('aria-pressed')) !== 'true') {
+    throw new Error('stars did not multi-select');
+  }
+  console.log(`  ${await map.getByText(/share all of these/).textContent()}`);
   await shot('discover-star');
   await hub.dispatchEvent('click');
+  await hub2.dispatchEvent('click');
   const openFirst = async () => {
     await page.locator('[data-face]:not([aria-label$="passed"])').first().dispatchEvent('click');
     await page.locator('section[aria-label$="quick look"]').waitFor();
