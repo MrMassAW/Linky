@@ -375,18 +375,12 @@ export function SpaceMap({
       {RINGS.map((score) => {
         const r = ringR(score);
         return (
-          <div key={score} aria-hidden="true">
-            <div
-              className="pointer-events-none absolute rounded-[50%] border border-dashed border-[#c99be0]/20"
-              style={{ left: cx - r, top: cy - r * EY, width: r * 2, height: r * 2 * EY }}
-            />
-            <span
-              className="pointer-events-none absolute bg-[#0c0720] px-1 font-pixel text-[7px] text-[#9d8fc0]/80"
-              style={{ left: cx - r * 0.71 - 12, top: cy - r * 0.71 * EY - 6 }}
-            >
-              {score}%
-            </span>
-          </div>
+          <div
+            key={score}
+            aria-hidden="true"
+            className="pointer-events-none absolute rounded-[50%] border border-dashed border-[#c99be0]/20"
+            style={{ left: cx - r, top: cy - r * EY, width: r * 2, height: r * 2 * EY }}
+          />
         );
       })}
 
