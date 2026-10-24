@@ -52,9 +52,12 @@ export function lifestyleScore(a: Attributes, b: Attributes): number | null {
     if (i < 0 || j < 0) continue;
     parts.push(1 - Math.abs(i - j) / (scale.length - 1));
   }
-  const goalA = str(a, 'goal');
-  const goalB = str(b, 'goal');
-  if (goalA && goalB) parts.push(lookupSymmetric(GOAL_SIMILARITY, goalA, goalB));
+  // Goals are multi-select: score the best-aligned pair.
+  const goalsA = list(a, 'goal');
+  const goalsB = list(b, 'goal');
+  if (goalsA.length && goalsB.length) {
+    parts.push(Math.max(...goalsA.flatMap((x) => goalsB.map((y) => lookupSymmetric(GOAL_SIMILARITY, x, y)))));
+  }
   const kidsA = str(a, 'kids_want');
   const kidsB = str(b, 'kids_want');
   if (kidsA && kidsB) parts.push(lookupSymmetric(KIDS_WANT_SIMILARITY, kidsA, kidsB));

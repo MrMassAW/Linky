@@ -92,6 +92,12 @@ describe('lifestyle', () => {
     expect(lifestyleScore(a, b)!).toBeGreaterThan(lifestyleScore(a, c)!);
     expect(lifestyleScore({}, {})).toBeNull();
   });
+
+  it('scores multi-select goals by their best-aligned pair', () => {
+    const g = (v: string | string[]) => ({ goal: { value: v, visible: true, is_dealbreaker: false } });
+    expect(lifestyleScore(g(['short-term', 'long-term']), g('long-term'))).toBe(100);
+    expect(lifestyleScore(g(['short-term', 'friends']), g('long-term'))).toBe(30);
+  });
 });
 
 describe('hard filters', () => {

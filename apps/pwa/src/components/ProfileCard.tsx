@@ -16,7 +16,7 @@ const ATTR_EMOJI: Record<string, string> = {
 };
 
 function label(key: string, v: unknown): string {
-  if (Array.isArray(v)) return v.join(', ');
+  if (Array.isArray(v)) return v.map((x) => OPTION_LABELS[key]?.[String(x)] ?? String(x)).join(', ');
   return OPTION_LABELS[key]?.[String(v)] ?? String(v);
 }
 

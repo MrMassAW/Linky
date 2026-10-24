@@ -6,6 +6,8 @@ import { Button, Chip, ErrorText, Toggle } from '../ui';
 
 const SINGLE: AttributeKey[] = ['goal', 'drinking', 'cannabis', 'smoking', 'pets', 'kids_have', 'kids_want', 'religion', 'politics'];
 const OPTIONAL = new Set<AttributeKey>(['religion', 'politics']);
+/** Questions where more than one answer can be true at once. */
+const MULTI = new Set<AttributeKey>(['goal']);
 
 const blank = (): AttributeSetting => ({ value: null, visible: true, is_dealbreaker: false });
 
@@ -61,7 +63,7 @@ export function LifestyleForm({
       </div>
 
       {SINGLE.map((k) => (
-        <AttributeField key={k} k={k} s={get(k)} onChange={(p) => put(k, p)} optional={OPTIONAL.has(k)} />
+        <AttributeField key={k} k={k} s={get(k)} onChange={(p) => put(k, p)} optional={OPTIONAL.has(k)} multi={MULTI.has(k)} />
       ))}
 
       <MultiField
@@ -118,23 +120,33 @@ function AttributeField({
   s,
   onChange,
   optional,
+  multi,
 }: {
   k: AttributeKey;
   s: AttributeSetting;
   onChange: (p: Partial<AttributeSetting>) => void;
   optional?: boolean;
+  multi?: boolean;
 }) {
   const options = OPTION_LABELS[k];
-  const value = typeof s.value === 'string' ? s.value : null;
-  const accept = s.accept ?? (value ? [value] : []);
+  const values = Array.isArray(s.value) ? s.value : typeof s.value === 'string' ? [s.value] : [];
+  const accept = s.accept ?? values;
+  const pick = (v: string) => {
+    if (multi) {
+      const next = values.includes(v) ? values.filter((x) => x !== v) : [...values, v];
+      return onChange({ value: next.length ? next : null });
+    }
+    onChange({ value: values.includes(v) ? null : v });
+  };
   return (
     <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-plum-100/60">
       <h3 className="text-base font-semibold">
         {ATTRIBUTE_LABELS[k]} {optional && <span className="text-xs font-normal text-muted">(optional)</span>}
+        {multi && <span className="text-xs font-normal text-muted"> (pick all that apply)</span>}
       </h3>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {Object.entries(options).map(([v, label]) => (
-          <Chip key={v} small selected={value === v} onClick={() => onChange({ value: value === v ? null : v })}>
+          <Chip key={v} small selected={values.includes(v)} onClick={() => pick(v)}>
             {label}
           </Chip>
         ))}
