@@ -186,7 +186,7 @@ try {
   await page.waitForFunction((b) => {
     return document.querySelector('[data-testid=space-map]').getAttribute('data-zoom') !== b;
   }, zoomBefore);
-  await click('FIT');
+  await click('RESET');
 
   // Real touch input: a two-finger pinch zooms in, a one-finger swipe pans.
   const zoomLabel = () => map.getAttribute('data-zoom');
@@ -210,7 +210,7 @@ try {
   const after = await face.boundingBox();
   if (after.x - before.x < 80) throw new Error(`swipe did not pan (${before.x} -> ${after.x})`);
   console.log(`  pinch ${fitLabel} -> ${pinched}, swipe moved ${Math.round(after.x - before.x)}px`);
-  await click('FIT');
+  await click('RESET');
   // A long swipe is clamped: you (the center) stay on screen.
   await touch('touchStart', [[mb.x + 20, my + 150]]);
   for (let k = 1; k <= 20; k++) await page.waitForTimeout(16).then(() => touch('touchMove', [[mb.x + 20 + k * 60, my + 150]]));
@@ -218,7 +218,17 @@ try {
   await page.waitForTimeout(800);
   const you = await map.getByText('YOU', { exact: true }).boundingBox();
   if (you.x < mb.x || you.x + you.width > mb.x + mb.width) throw new Error(`panned too far: YOU at x=${you.x}`);
-  await click('FIT');
+  // Right after a pan, a real tap on a filter chip still works, and RESET clears it again.
+  const strongChip = page.getByRole('group', { name: 'Quick filters' }).getByRole('button', { name: /80%\+/ });
+  const sb = await strongChip.boundingBox();
+  await touch('touchStart', [[sb.x + sb.width / 2, sb.y + sb.height / 2]]);
+  await touch('touchEnd', []);
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll('[aria-label="Quick filters"] button')].some((b) => b.textContent.includes('80%') && b.getAttribute('aria-pressed') === 'true'),
+  );
+  await click('RESET');
+  await page.waitForFunction((n) => document.querySelectorAll('[data-face]').length === n, facesBefore);
+  if ((await strongChip.getAttribute('aria-pressed')) !== 'false') throw new Error('RESET did not clear the 80%+ filter');
   // Stars are shared things: tapping one highlights who shares it.
   const hub = page.locator('[data-hub]').first();
   console.log(`  stars: ${(await page.locator('[data-hub]').allTextContents()).join(' | ')}`);

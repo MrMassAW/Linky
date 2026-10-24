@@ -34,7 +34,7 @@ function savedMode(): Mode {
 import { useLoader, useMe, useSession } from '../state/session';
 
 export default function Discover() {
-  const { backend } = useSession();
+  const { backend, refresh } = useSession();
   const me = useMe();
   const nav = useNavigate();
   const feed = useLoader(() => backend.getFeed(), [backend]);
@@ -167,6 +167,17 @@ export default function Discover() {
 
   if (feed.loading) return <FullPageSpinner />;
 
+  // RESET on the map: map-only filters off and every must-match answer back to a plain answer.
+  const resetFilters = async () => {
+    setView(NO_VIEW_FILTERS);
+    const keys = Object.keys(me.attributes) as (keyof typeof me.attributes)[];
+    if (!keys.some((k) => me.attributes[k]?.is_dealbreaker)) return;
+    const attrs = Object.fromEntries(keys.map((k) => [k, { ...me.attributes[k]!, is_dealbreaker: false }]));
+    await backend.saveAttributes(attrs);
+    await refresh();
+    feed.setData(await backend.getFeed());
+  };
+
   const filters = (inline = false) => (
     <QuickFilters
       inline={inline}
@@ -226,7 +237,9 @@ export default function Discover() {
         </Empty>
       ) : mode === 'space' ? (
         <div className="h-[calc(100dvh-10.5rem)] min-h-[440px]">
-          <SpaceMap items={items} shared={shared} myPhoto={me.photos[0]?.url} pickedId={pickId} onPick={setPickId} toolbar={filters()}>
+          <SpaceMap items={items} shared={shared} myPhoto={me.photos[0]?.url} pickedId={pickId} onPick={setPickId} toolbar={filters()}
+            onReset={() => void resetFilters()}
+          >
             {picked && !opened && (
               <QuickCard
                 key={picked.profile.id}

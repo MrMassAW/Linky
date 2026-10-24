@@ -105,6 +105,7 @@ export function SpaceMap({
   pickedId,
   onPick,
   toolbar,
+  onReset,
   children,
 }: {
   items: FeedItem[];
@@ -115,6 +116,8 @@ export function SpaceMap({
   onPick: (id: string | null) => void;
   /** Drawn across the top of the sky (the filters). */
   toolbar?: ReactNode;
+  /** Called by RESET after the view is recentered, to clear the filters too. */
+  onReset?: () => void;
   children?: ReactNode;
 }) {
   // Stars you've tapped; faces light up when they share every one of them.
@@ -341,6 +344,13 @@ export function SpaceMap({
         backgroundPosition: `calc(50% + ${view.x * 0.3}px) calc(50% + ${view.y * 0.3}px)`,
         imageRendering: 'pixelated',
       }}
+      // Children like the filters stop pointerdown from bubbling, so start each gesture's drag count here.
+      // A primary pointer is the first finger of a new gesture, so drop anything a lost pointerup left behind.
+      onPointerDownCapture={(e) => {
+        if (!e.isPrimary) return;
+        pointers.current.clear();
+        moved.current = 0;
+      }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -348,7 +358,7 @@ export function SpaceMap({
       onPointerLeave={(e) => e.pointerType === 'mouse' && onPointerUp(e)}
       onClickCapture={(e) => {
         // A drag that ends on a face is a pan, not a tap.
-        if (moved.current > 10) {
+        if (moved.current > 10 && (e.target as HTMLElement).closest('[data-face],[data-hub]')) {
           e.stopPropagation();
           e.preventDefault();
         }
@@ -530,14 +540,17 @@ export function SpaceMap({
         onClick={() => {
           setView({ z: null, x: 0, y: 0 });
           setHubPick([]);
+          onPick(null);
+          onReset?.();
         }}
-        className="absolute bottom-3 right-3 z-10 h-11 px-1 font-pixel text-[8px] text-[#c9b8ea] underline"
+        className="px-frame absolute bottom-4 right-4 z-10 bg-[#1a1033] px-2 py-1.5 font-pixel text-[8px] text-[#e3d6ff] active:translate-y-px"
+        style={{ ['--pf' as string]: '#5b3a8a' }}
       >
-        FIT
+        RESET
       </button>
 
       {!pickedId && (
-        <p className="pointer-events-none absolute bottom-3 left-4 right-16 text-lg leading-5 text-[#9d8fc0]">
+        <p className="pointer-events-none absolute bottom-3 left-4 right-24 text-lg leading-5 text-[#9d8fc0]">
           {hubPick.length
             ? `${sharingAll} ${sharingAll === 1 ? 'person shares' : 'people share'} ${hubPick.length > 1 ? 'all of these' : 'this'}. Tap more stars to narrow down.`
             : 'Stars = what you share. Closer = stronger match. Tap stars or a face.'}
