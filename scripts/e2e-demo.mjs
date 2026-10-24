@@ -180,17 +180,16 @@ try {
   await page.getByRole('group', { name: 'Quick filters' }).getByRole('button', { name: /80%\+/ }).click();
   await page.waitForFunction((n) => document.querySelectorAll('[data-face]').length === n, facesBefore);
   console.log(`  80%+ filter: ${facesBefore} -> ${strong} faces, then back`);
-  const zoomBefore = await map.locator('text=/^x\\d/').textContent();
+  const zoomBefore = await map.getAttribute('data-zoom');
   await map.hover();
   await page.mouse.wheel(0, -400);
   await page.waitForFunction((b) => {
-    const label = [...document.querySelectorAll('[data-testid=space-map] span')].find((el) => /^x\d/.test(el.textContent ?? ''));
-    return label && label.textContent !== b;
+    return document.querySelector('[data-testid=space-map]').getAttribute('data-zoom') !== b;
   }, zoomBefore);
   await click('FIT');
 
   // Real touch input: a two-finger pinch zooms in, a one-finger swipe pans.
-  const zoomLabel = () => map.locator('text=/^x\\d/').textContent();
+  const zoomLabel = () => map.getAttribute('data-zoom');
   const cdp = await ctx.newCDPSession(page);
   const mb = await map.boundingBox();
   const mx = mb.x + mb.width / 2;
@@ -201,7 +200,7 @@ try {
   for (let k = 1; k <= 8; k++) await touch('touchMove', [[mx - 30 - k * 12, my], [mx + 30 + k * 12, my]]);
   await touch('touchEnd', []);
   const pinched = await zoomLabel();
-  if (parseFloat(pinched.slice(1)) <= parseFloat(fitLabel.slice(1))) throw new Error(`pinch did not zoom in (${fitLabel} -> ${pinched})`);
+  if (parseFloat(pinched) <= parseFloat(fitLabel)) throw new Error(`pinch did not zoom in (${fitLabel} -> ${pinched})`);
   const face = page.locator('[data-face]').first();
   const before = await face.boundingBox();
   await touch('touchStart', [[mx, my + 150]]);

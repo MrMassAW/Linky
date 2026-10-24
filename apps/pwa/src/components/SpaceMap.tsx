@@ -315,6 +315,7 @@ export function SpaceMap({
     <div
       ref={box}
       data-testid="space-map"
+      data-zoom={z.toFixed(2)}
       className="relative h-full touch-none select-none overflow-hidden rounded-3xl bg-[#0c0720] font-retro text-[#f1e8ff]"
       style={{
         backgroundImage: `url(${STARS})`,
@@ -506,21 +507,16 @@ export function SpaceMap({
         );
       })}
 
-      <div className="absolute right-3 top-16 z-10 flex flex-col items-center gap-2.5">
-        <ZoomButton label="Zoom in" onClick={() => zoomAt(1.4, size.w / 2, size.h / 2)}>+</ZoomButton>
-        <span className="font-pixel text-[8px] text-[#9d8fc0]">x{z.toFixed(1)}</span>
-        <ZoomButton label="Zoom out" onClick={() => zoomAt(1 / 1.4, size.w / 2, size.h / 2)}>-</ZoomButton>
-        <button
-          type="button"
-          onClick={() => {
-            setView({ z: null, x: 0, y: 0 });
-            setHubPick([]);
-          }}
-          className="mt-1 h-11 px-1 font-pixel text-[8px] text-[#c9b8ea] underline"
-        >
-          FIT
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => {
+          setView({ z: null, x: 0, y: 0 });
+          setHubPick([]);
+        }}
+        className="absolute bottom-3 right-3 z-10 h-11 px-1 font-pixel text-[8px] text-[#c9b8ea] underline"
+      >
+        FIT
+      </button>
 
       {!pickedId && (
         <p className="pointer-events-none absolute bottom-3 left-4 right-16 text-lg leading-5 text-[#9d8fc0]">
@@ -533,19 +529,6 @@ export function SpaceMap({
       {toolbar}
       {children}
     </div>
-  );
-}
-
-function ZoomButton({ label, onClick, children }: { label: string; onClick: () => void; children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className="px-frame h-11 w-11 bg-[#2a1d48] font-pixel text-base text-[#f1e8ff] active:translate-y-px"
-    >
-      {children}
-    </button>
   );
 }
 
