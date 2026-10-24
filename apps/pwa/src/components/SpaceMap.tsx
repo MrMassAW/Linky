@@ -68,7 +68,6 @@ export function SpaceMap({
   const fling = useRef(0);
   const [time, setTime] = useState(0);
   const [shooting, setShooting] = useState<{ id: number; left: string; top: string; angle: number } | null>(null);
-  const [ufo, setUfo] = useState<{ id: number; top: string; rtl: boolean } | null>(null);
   const still = useRef(false);
   still.current = Boolean(pickedId);
 
@@ -114,22 +113,6 @@ export function SpaceMap({
     return () => clearTimeout(timer);
   }, []);
 
-  // Rarely, a little UFO wanders across.
-  useEffect(() => {
-    if (reducedMotion()) return;
-    let timer = 0;
-    let n = 0;
-    const schedule = (wait: number) => {
-      timer = window.setTimeout(() => {
-        n += 1;
-        setUfo({ id: n, top: `${12 + Math.random() * 60}%`, rtl: Math.random() < 0.5 });
-        schedule(25000 + Math.random() * 35000);
-      }, wait);
-    };
-    schedule(8000 + Math.random() * 10000);
-    return () => clearTimeout(timer);
-  }, []);
-
   useLayoutEffect(() => {
     const el = box.current;
     if (!el) return;
@@ -162,12 +145,14 @@ export function SpaceMap({
       const k = z1 / z0;
       const cx = sz.w / 2 + v.x;
       const cy = sz.h / 2 + v.y;
-      const limit = far * z1 + Math.max(sz.w, sz.h) / 2;
-      const clamp = (n: number) => Math.max(-limit, Math.min(limit, n));
+      // Pan only far enough to bring the outermost orbit to the edge, plus a little slack.
+      const limitX = Math.max(0, far * z1 - sz.w / 2) + sz.w * 0.25;
+      const limitY = Math.max(0, far * z1 - sz.h / 2) + sz.h * 0.25;
+      const clamp = (n: number, limit: number) => Math.max(-limit, Math.min(limit, n));
       return {
         z: z1,
-        x: clamp(mx - (mx - cx) * k - sz.w / 2 + dx),
-        y: clamp(my - (my - cy) * k - sz.h / 2 + dy),
+        x: clamp(mx - (mx - cx) * k - sz.w / 2 + dx, limitX),
+        y: clamp(my - (my - cy) * k - sz.h / 2 + dy, limitY),
       };
     });
   }, []);
@@ -311,26 +296,6 @@ export function SpaceMap({
           style={{ left: shooting.left, top: shooting.top, transform: `rotate(${shooting.angle}deg)`, transformOrigin: '0 0' }}
         >
           <div className="animate-shoot h-[3px] w-24 bg-[linear-gradient(270deg,#fff_0_12px,rgba(255,228,154,0.8)_12px_40px,rgba(255,228,154,0)_100%)]" onAnimationEnd={() => setShooting(null)} />
-        </div>
-      )}
-
-      {ufo && (
-        <div
-          key={ufo.id}
-          aria-hidden="true"
-          data-testid="ufo"
-          className={`pointer-events-none absolute ${ufo.rtl ? 'animate-ufo-rtl' : 'animate-ufo-ltr'}`}
-          style={{ top: ufo.top }}
-          onAnimationEnd={() => setUfo(null)}
-        >
-          <svg width="44" height="24" viewBox="0 0 22 12" shape-rendering="crispEdges" className="animate-ufo-bob">
-            <path fill="#b8e0ff" d="M8 1h6v1h1v2H7V2h1z" />
-            <path fill="#e8f6ff" d="M9 2h2v1H9z" />
-            <path fill="#8e9bb5" d="M5 4h12v1h2v1h1v2h-1v1H3V8H2V6h1V5h2z" />
-            <path fill="#5f6b85" d="M3 8h16v1H3z" />
-            <path className="animate-ufo-blink" fill="#ffe49a" d="M5 6h2v1H5zm5 0h2v1h-2zm5 0h2v1h-2z" />
-            <path fill="#9be3cf" fillOpacity="0.4" d="M8 9h6v1h1v1h1v1H6v-1h1v-1h1z" />
-          </svg>
         </div>
       )}
 

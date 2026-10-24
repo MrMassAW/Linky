@@ -118,53 +118,6 @@
     opacity: 0;
   }
 }
-@keyframes ufo-ltr {
-  from {
-    left: -60px;
-  }
-  to {
-    left: calc(100% + 60px);
-  }
-}
-@keyframes ufo-rtl {
-  from {
-    left: calc(100% + 60px);
-  }
-  to {
-    left: -60px;
-  }
-}
-@keyframes ufo-bob {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-4deg);
-  }
-  50% {
-    transform: translateY(7px) rotate(4deg);
-  }
-}
-@keyframes ufo-blink {
-  0%,
-  49% {
-    opacity: 1;
-  }
-  50%,
-  100% {
-    opacity: 0.25;
-  }
-}
-.animate-ufo-ltr {
-  animation: ufo-ltr 8s linear both;
-}
-.animate-ufo-rtl {
-  animation: ufo-rtl 8s linear both;
-}
-.animate-ufo-bob {
-  animation: ufo-bob 1.4s ease-in-out infinite;
-}
-.animate-ufo-blink {
-  animation: ufo-blink 0.6s steps(1) infinite;
-}
 .animate-twinkle {
   animation: twinkle 3s ease-in-out infinite;
 }
@@ -173,9 +126,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .animate-twinkle,
-  .animate-shoot,
-  .animate-ufo-bob,
-  .animate-ufo-blink {
+  .animate-shoot {
     animation: none;
   }
 }

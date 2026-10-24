@@ -185,6 +185,14 @@ try {
   if (after.x - before.x < 80) throw new Error(`swipe did not pan (${before.x} -> ${after.x})`);
   console.log(`  pinch ${fitLabel} -> ${pinched}, swipe moved ${Math.round(after.x - before.x)}px`);
   await click('FIT');
+  // A long swipe is clamped: you (the center) stay on screen.
+  await touch('touchStart', [[mb.x + 20, my + 150]]);
+  for (let k = 1; k <= 20; k++) await page.waitForTimeout(16).then(() => touch('touchMove', [[mb.x + 20 + k * 60, my + 150]]));
+  await touch('touchEnd', []);
+  await page.waitForTimeout(800);
+  const you = await map.getByText('YOU').boundingBox();
+  if (you.x < mb.x || you.x + you.width > mb.x + mb.width) throw new Error(`panned too far: YOU at x=${you.x}`);
+  await click('FIT');
   const openFirst = async () => {
     await page.locator('[data-face]:not([aria-label$="passed"])').first().dispatchEvent('click');
     await page.locator('section[aria-label$="quick look"]').waitFor();
