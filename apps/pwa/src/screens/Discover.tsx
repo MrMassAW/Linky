@@ -167,8 +167,9 @@ export default function Discover() {
 
   if (feed.loading) return <FullPageSpinner />;
 
-  const filters = (
+  const filters = (inline = false) => (
     <QuickFilters
+      inline={inline}
       view={view}
       onView={setView}
       onChanged={async () => {
@@ -211,7 +212,7 @@ export default function Discover() {
       <ErrorText>{feed.error ?? error}</ErrorText>
 
       {(mode === 'list' || items.length === 0) && (
-        <div className="relative z-20 mb-3 h-[52px] rounded-2xl bg-[#0c0720] font-retro text-[#f1e8ff]">{filters}</div>
+        <div className="relative z-20 mb-3 rounded-2xl bg-[#0c0720] font-retro text-[#f1e8ff]">{filters(true)}</div>
       )}
 
       {(mode === 'space' ? items.length === 0 : queue.length === 0) ? (
@@ -225,7 +226,7 @@ export default function Discover() {
         </Empty>
       ) : mode === 'space' ? (
         <div className="h-[calc(100dvh-10.5rem)] min-h-[440px]">
-          <SpaceMap items={items} shared={shared} myPhoto={me.photos[0]?.url} pickedId={pickId} onPick={setPickId} toolbar={filters}>
+          <SpaceMap items={items} shared={shared} myPhoto={me.photos[0]?.url} pickedId={pickId} onPick={setPickId} toolbar={filters()}>
             {picked && !opened && (
               <QuickCard
                 key={picked.profile.id}

@@ -76,7 +76,10 @@ export function QuickFilters({
   view,
   onView,
   onChanged,
+  inline = false,
 }: {
+  /** Laid out in the page (list view) instead of floating over the sky. */
+  inline?: boolean;
   view: ViewFilters;
   onView: (v: ViewFilters) => void;
   onChanged: () => Promise<void>;
@@ -109,11 +112,11 @@ export function QuickFilters({
     answered.filter((k) => me.attributes[k]?.is_dealbreaker).length + Object.values(view).filter(Boolean).length;
 
   return (
-    <div className="absolute inset-x-3 top-3 z-20" onPointerDown={(e) => e.stopPropagation()}>
+    <div className={inline ? 'relative p-3' : 'absolute inset-x-3 top-3 z-20'} onPointerDown={(e) => e.stopPropagation()}>
       <div
         role="group"
         aria-label="Quick filters"
-        className="flex touch-pan-x gap-3 overflow-x-auto p-[3px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex max-h-[166px] touch-pan-y flex-wrap gap-x-3 gap-y-2.5 overflow-y-auto p-[3px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <Pix on={open} onClick={() => setOpen(!open)} label="All filters">
           <span className="font-pixel text-[9px]">FILTERS{active ? ` ${active}` : ''}</span>
