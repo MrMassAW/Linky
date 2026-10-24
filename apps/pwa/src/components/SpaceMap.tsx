@@ -2,21 +2,20 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { TYPE_NICKNAMES } from '@linky/content';
 import { pickHubs, type SharedThing } from '../lib/sharedThings';
 import type { FeedItem } from '../lib/types';
-import { VerifiedBadge } from './ui';
+import { Button, VerifiedBadge, XIcon } from './ui';
 
 const RINGS = [90, 80, 70, 60];
 const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 2.6;
-const STARS = `${import.meta.env.BASE_URL}space/stars.png`;
 /** The screen is tall, so the constellation is an ellipse stretched vertically. */
 const EY = 1.35;
 
 /** World-space distance beyond the ring of shared-thing stars: the stronger the match, the closer. */
 export const orbitRadius = (score: number) => (100 - Math.max(0, Math.min(100, score))) * 4.6;
 
-/** Match % bands: gold 90+, coral 80s, plum 70s, slate below. */
+/** Match % bands in the app palette: deep coral 90+, coral 80s, plum 70s, muted below. */
 export function tierColor(score: number) {
-  return score >= 90 ? '#ffe49a' : score >= 80 ? '#ffa08e' : score >= 70 ? '#c99be0' : '#9fb0c8';
+  return score >= 90 ? '#e8505b' : score >= 80 ? '#ff7a6b' : score >= 70 ? '#8b3a74' : '#b3a3b0';
 }
 
 const clampZoom = (z: number) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z));
@@ -75,7 +74,7 @@ const TWINKLES = Array.from({ length: 46 }, (_, i) => {
     left: `${-25 + h(1) * 150}%`,
     top: `${-25 + h(2) * 150}%`,
     size: h(3) < 0.75 ? 2 : 4,
-    color: ['#ffffff', '#ffd6e0', '#b8e0ff', '#ffe49a'][Math.floor(h(4) * 4)],
+    color: ['#ffc2b8', '#ecd9e7', '#ffe1dc', '#d9b8cf'][Math.floor(h(4) * 4)],
     duration: `${2.2 + h(5) * 3.5}s`,
     delay: `${-h(6) * 6}s`,
     cross: h(7) > 0.82,
@@ -337,12 +336,9 @@ export function SpaceMap({
       ref={box}
       data-testid="space-map"
       data-zoom={z.toFixed(2)}
-      className="relative h-full touch-none select-none overflow-hidden rounded-3xl bg-[#0c0720] font-retro text-[#f1e8ff]"
+      className="relative h-full touch-none select-none overflow-hidden rounded-3xl font-sans text-ink shadow-sm ring-1 ring-plum-100/60"
       style={{
-        backgroundImage: `url(${STARS})`,
-        backgroundSize: `${Math.round(392 * (0.85 + z * 0.25))}px auto`,
-        backgroundPosition: `calc(50% + ${view.x * 0.3}px) calc(50% + ${view.y * 0.3}px)`,
-        imageRendering: 'pixelated',
+        background: `radial-gradient(ellipse at calc(50% + ${view.x}px) calc(50% + ${view.y}px), #ffffff 0%, #fff8f4 40%, #f7eff5 100%)`,
       }}
       // Children like the filters stop pointerdown from bubbling, so start each gesture's drag count here.
       // A primary pointer is the first finger of a new gesture, so drop anything a lost pointerup left behind.
@@ -378,18 +374,15 @@ export function SpaceMap({
         {TWINKLES.map((st, i) => (
           <span
             key={i}
-            className="animate-twinkle absolute"
+            className="animate-twinkle absolute rounded-full"
             style={{
               left: st.left,
               top: st.top,
-              width: st.size,
-              height: st.size,
+              width: st.size + 1,
+              height: st.size + 1,
               background: st.color,
               animationDuration: st.duration,
               animationDelay: st.delay,
-              boxShadow: st.cross
-                ? `${st.size}px 0 0 ${st.color}, -${st.size}px 0 0 ${st.color}, 0 ${st.size}px 0 ${st.color}, 0 -${st.size}px 0 ${st.color}`
-                : undefined,
             }}
           />
         ))}
@@ -402,7 +395,7 @@ export function SpaceMap({
           className="pointer-events-none absolute"
           style={{ left: shooting.left, top: shooting.top, transform: `rotate(${shooting.angle}deg)`, transformOrigin: '0 0' }}
         >
-          <div className="animate-shoot h-[3px] w-24 bg-[linear-gradient(270deg,#fff_0_12px,rgba(255,228,154,0.8)_12px_40px,rgba(255,228,154,0)_100%)]" onAnimationEnd={() => setShooting(null)} />
+          <div className="animate-shoot h-[2px] w-24 rounded-full bg-[linear-gradient(270deg,#ff7a6b_0_10px,rgba(255,122,107,0.5)_10px_40px,rgba(255,122,107,0)_100%)]" onAnimationEnd={() => setShooting(null)} />
         </div>
       )}
 
@@ -412,7 +405,7 @@ export function SpaceMap({
           <div
             key={score}
             aria-hidden="true"
-            className="pointer-events-none absolute rounded-[50%] border border-dashed border-[#c99be0]/20"
+            className="pointer-events-none absolute rounded-[50%] border border-dashed border-plum-500/15"
             style={{ left: cx - r, top: cy - r * EY, width: r * 2, height: r * 2 * EY }}
           />
         );
@@ -426,8 +419,8 @@ export function SpaceMap({
             y1={cy}
             x2={h.x}
             y2={h.y}
-            stroke="#ffe49a"
-            strokeWidth={2.5}
+            stroke="#ff7a6b"
+            strokeWidth={2}
             opacity={!hubPick.length ? (picked ? (picked.hubs.includes(k) ? 0.9 : 0.15) : 0.7) : hubPick.includes(k) ? 0.95 : 0.12}
           />
         ))}
@@ -451,12 +444,12 @@ export function SpaceMap({
         style={{ left: cx - youSize / 2, top: cy - youSize / 2, width: youSize }}
       >
         <div
-          className="overflow-hidden rounded-full bg-[#2a1d48] ring-4 ring-[#ffa33a] shadow-[0_0_0_8px_rgba(255,163,58,0.25),0_0_28px_8px_rgba(255,163,58,0.35)]"
+          className="overflow-hidden rounded-full bg-coral-100 ring-4 ring-coral-500 shadow-[0_0_0_9px_rgba(232,80,91,0.15),0_8px_24px_rgba(232,80,91,0.35)]"
           style={{ width: youSize, height: youSize }}
         >
           {myPhoto && <img src={myPhoto} alt="" className="h-full w-full object-cover" draggable={false} />}
         </div>
-        <span className="mt-2 bg-[#0c0720] px-1 font-pixel text-[8px] text-[#ffe49a]">YOU</span>
+        <span className="mt-2 rounded-full bg-coral-500 px-2 py-0.5 text-[11px] font-semibold text-white shadow-sm">You</span>
       </div>
 
       {hubs.map((h, k) => {
@@ -473,17 +466,12 @@ export function SpaceMap({
               setHubPick(on ? hubPick.filter((x) => x !== k) : [...hubPick, k]);
               onPick(null);
             }}
-            className="absolute z-[3] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap px-1.5 text-base leading-5 active:translate-y-[calc(-50%+1px)]"
-            style={{
-              left: hubPts[k].x,
-              top: hubPts[k].y,
-              color: on ? '#0c0720' : '#ffe49a',
-              background: on ? '#ffe49a' : '#1a1033',
-              boxShadow: '0 -2px 0 0 #ffe49a, 0 2px 0 0 #ffe49a, -2px 0 0 0 #ffe49a, 2px 0 0 0 #ffe49a',
-              opacity: !hubPick.length || on ? 1 : 0.5,
-            }}
+            className={`absolute z-[3] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full px-3 py-1 text-sm font-semibold shadow-sm transition active:scale-95 ${
+              on ? 'bg-coral-500 text-white' : 'bg-white text-plum-700 ring-1 ring-coral-200'
+            }`}
+            style={{ left: hubPts[k].x, top: hubPts[k].y, opacity: !hubPick.length || on ? 1 : 0.55 }}
           >
-            {h.label} <span className="opacity-70">{count}</span>
+            {h.label} <span className={on ? 'text-white/80' : 'text-coral-500'}>{count}</span>
           </button>
         );
       })}
@@ -516,13 +504,13 @@ export function SpaceMap({
               aria-label={`${p.name}, ${score}% match${passed ? ', passed' : nearIds?.has(p.id) ? ', near match' : ''}`}
               aria-pressed={picked}
               onClick={() => onPick(p.id)}
-              className="block overflow-hidden rounded-full bg-[#2a1d48] transition-transform active:scale-90"
+              className="block overflow-hidden rounded-full bg-plum-50 transition-transform active:scale-90"
               style={{
                 width: s,
                 height: s,
                 boxShadow: picked
-                  ? `0 0 0 3px #0c0720, 0 0 0 6px #ffe49a, 0 0 18px 6px rgba(255,228,154,0.45)`
-                  : `0 0 0 2px #0c0720, 0 0 0 4px ${color}`,
+                  ? `0 0 0 3px #fff, 0 0 0 6px #e8505b, 0 8px 20px rgba(232,80,91,0.4)`
+                  : `0 0 0 2px #fff, 0 0 0 4px ${color}, 0 4px 10px rgba(47,18,40,0.15)`,
               }}
             >
               {p.photos[0] && <img src={p.photos[0].url} alt="" className="h-full w-full object-cover" draggable={false} />}
@@ -530,9 +518,9 @@ export function SpaceMap({
             {(showAllScores || score >= 85 || picked) && (!passed || picked) && !dim && (
               <div className="pointer-events-none absolute left-1/2 top-full mt-1.5 flex w-28 -translate-x-1/2 flex-col items-center">
                 {(showNames || picked) && (
-                  <span className="bg-[#0c0720]/80 px-1 text-lg leading-4">{p.name}</span>
+                  <span className="rounded-full bg-white/90 px-1.5 text-xs font-semibold leading-4 text-ink">{p.name}</span>
                 )}
-                <span className="bg-[#0c0720]/80 px-1 font-pixel text-[8px] leading-3" style={{ color }}>
+                <span className="mt-0.5 rounded-full bg-white/90 px-1.5 text-[11px] font-bold leading-4" style={{ color }}>
                   {score}%
                 </span>
               </div>
@@ -549,22 +537,20 @@ export function SpaceMap({
           onPick(null);
           onReset?.();
         }}
-        className="px-frame absolute bottom-4 right-4 z-10 bg-[#1a1033] px-2 py-1.5 font-pixel text-[8px] text-[#e3d6ff] active:translate-y-px"
-        style={{ ['--pf' as string]: '#5b3a8a' }}
+        className="absolute bottom-3 right-3 z-10 rounded-full bg-white px-4 py-2 text-sm font-semibold text-plum-700 shadow-sm ring-1 ring-plum-100 transition active:scale-95"
       >
-        RESET
+        Reset
       </button>
 
       {!pickedId && noteAlert && note && !hubPick.length ? (
         <p
           role="status"
-          className="px-frame pointer-events-none absolute bottom-3 left-4 right-24 z-10 bg-[#ffe49a] px-3 py-2 text-xl leading-6 text-[#0c0720] shadow-[0_0_24px_6px_rgba(255,228,154,0.35)]"
-          style={{ ['--pf' as string]: '#ffa33a' }}
+          className="pointer-events-none absolute bottom-3 left-3 right-24 z-10 rounded-2xl bg-coral-500 px-3.5 py-2.5 text-sm font-semibold leading-5 text-white shadow-lg shadow-coral-200"
         >
           {note}
         </p>
       ) : !pickedId && (
-        <p className="pointer-events-none absolute bottom-3 left-4 right-24 text-lg leading-5 text-[#9d8fc0]">
+        <p className="pointer-events-none absolute bottom-3.5 left-4 right-24 text-xs leading-4 text-muted">
           {hubPick.length
             ? `${sharingAll} ${sharingAll === 1 ? 'person shares' : 'people share'} ${hubPick.length > 1 ? 'all of these' : 'this'}. Tap more stars to narrow down.`
             : (note ?? 'Stars = what you share. Closer = stronger match. Tap stars or a face.')}
@@ -610,55 +596,49 @@ export function QuickCard({
   return (
     <section
       aria-label={`${p.name} quick look`}
-      className="animate-slide-up px-frame absolute inset-x-3 bottom-3 z-20 flex flex-col gap-3 bg-[#1a1033] p-4 font-retro"
-      style={{ ['--pf' as string]: '#e8505b' }}
+      className="animate-slide-up absolute inset-x-3 bottom-3 z-20 flex flex-col gap-3 rounded-3xl bg-white p-4 shadow-xl shadow-plum-900/15 ring-1 ring-plum-100/60"
       onPointerDown={(e) => e.stopPropagation()}
     >
       <div className="flex items-center gap-3">
-        <img src={p.photos[0]?.url} alt="" className="px-frame h-16 w-16 bg-[#2a1d48] object-cover" />
+        <img src={p.photos[0]?.url} alt="" className="h-16 w-16 rounded-2xl bg-plum-50 object-cover" />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 text-[26px] leading-6">
+          <div className="flex items-center gap-1.5 font-display text-xl font-semibold leading-6">
             <span className="truncate">
               {p.name}, {p.age}
             </span>
             {p.verified && <VerifiedBadge />}
           </div>
-          <div className="truncate text-lg leading-5 text-[#c9b8ea]">
+          <div className="truncate text-sm text-muted">
             {[p.city ?? p.distance, p.personality && `${p.personality.type}${nickname ? ` ${nickname}` : ''}`]
               .filter(Boolean)
               .join(' · ')}
           </div>
         </div>
-        <div className="flex flex-col items-end">
-          <span className="font-pixel text-lg" style={{ color: tierColor(c.total) }}>
+        <div className="flex flex-col items-end leading-none">
+          <span className="font-display text-2xl font-semibold" style={{ color: tierColor(c.total) }}>
             {c.total}%
           </span>
-          <span className="text-base text-[#9d8fc0]">match</span>
+          <span className="mt-1 text-xs text-muted">match</span>
         </div>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close quick look"
-          className="-mr-3 -mt-3 h-11 w-11 self-start font-pixel text-xs text-[#c9b8ea]"
+          className="-mr-2 -mt-2 flex h-9 w-9 items-center justify-center self-start rounded-full text-muted hover:bg-plum-50"
         >
-          X
+          <XIcon className="h-5 w-5" />
         </button>
       </div>
 
       {bars.length > 0 && (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           {bars.map((b) => (
-            <div key={b.label} className="flex items-center gap-2.5">
-              <span className="w-28 text-lg leading-4 text-[#c9b8ea]">{b.label}</span>
-              <div className="flex flex-1 gap-[3px]" role="img" aria-label={`${b.label} ${b.value}%`}>
-                {Array.from({ length: 10 }, (_, j) => (
-                  <div
-                    key={j}
-                    className="h-2.5 flex-1"
-                    style={{ background: j < Math.round(b.value / 10) ? (j >= 8 ? '#ffe49a' : '#e8505b') : '#2a1d48' }}
-                  />
-                ))}
+            <div key={b.label} className="flex items-center gap-3">
+              <span className="w-28 text-sm text-plum-700">{b.label}</span>
+              <div className="h-2 flex-1 overflow-hidden rounded-full bg-plum-50" role="img" aria-label={`${b.label} ${b.value}%`}>
+                <div className="h-full rounded-full bg-coral-400" style={{ width: `${b.value}%` }} />
               </div>
+              <span className="w-9 text-right text-xs font-semibold text-plum-700">{b.value}%</span>
             </div>
           ))}
         </div>
@@ -666,10 +646,10 @@ export function QuickCard({
 
       {shared && shared.length > 0 && (
         <div>
-          <div className="text-base leading-4 text-[#9d8fc0]">What connects you</div>
-          <ul className="mt-1 flex flex-wrap gap-1.5" aria-label="What connects you">
+          <div className="text-xs font-medium text-muted">What connects you</div>
+          <ul className="mt-1.5 flex flex-wrap gap-1.5" aria-label="What connects you">
             {shared.slice(0, 5).map((t) => (
-              <li key={t.key} className="bg-[#2a1d48] px-2 text-lg leading-6 text-[#ffe49a]">
+              <li key={t.key} className="rounded-full bg-coral-50 px-2.5 py-1 text-xs font-medium text-coral-600">
                 {t.label}
               </li>
             ))}
@@ -678,57 +658,29 @@ export function QuickCard({
       )}
 
       {prompt && (
-        <div className="bg-[#120a26] px-2.5 py-2">
-          <div className="text-base leading-4 text-[#9d8fc0]">{prompt.prompt}</div>
-          <div className="mt-1 line-clamp-2 text-xl leading-5">{prompt.answer}</div>
+        <div className="rounded-2xl bg-plum-50 px-3.5 py-2.5">
+          <div className="text-xs font-medium text-plum-500">{prompt.prompt}</div>
+          <div className="mt-0.5 line-clamp-2 font-display text-[17px] font-semibold leading-snug">{prompt.answer}</div>
         </div>
       )}
 
       {item.passed_at && (
-        <p className="text-lg leading-5 text-[#9d8fc0]">You passed. {p.name} fades away within a day unless you change your mind.</p>
+        <p className="text-sm text-muted">You passed. {p.name} fades away within a day unless you change your mind.</p>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         {!item.passed_at && (
-          <PixelButton color="#5b2a6e" bg="#2a1d48" text="#c9b8ea" onClick={onPass} label={`Pass on ${p.name}`}>
-            PASS
-          </PixelButton>
+          <Button variant="secondary" className="flex-1 !px-3" onClick={onPass} aria-label={`Pass on ${p.name}`}>
+            Pass
+          </Button>
         )}
-        <PixelButton color="#8e4fa6" bg="#4a2a6e" text="#f1e8ff" onClick={onOpen} label={`Open ${p.name}'s profile`}>
-          OPEN
-        </PixelButton>
-        <PixelButton color="#e8505b" bg="#e8505b" text="#ffffff" onClick={onLike} label={`Like ${p.name}`}>
-          LIKE
-        </PixelButton>
+        <Button variant="secondary" className="flex-1 !px-3" onClick={onOpen} aria-label={`Open ${p.name}'s profile`}>
+          Open
+        </Button>
+        <Button className="flex-1 !px-3" onClick={onLike} aria-label={`Like ${p.name}`}>
+          Like
+        </Button>
       </div>
     </section>
-  );
-}
-
-function PixelButton({
-  color,
-  bg,
-  text,
-  onClick,
-  label,
-  children,
-}: {
-  color: string;
-  bg: string;
-  text: string;
-  onClick: () => void;
-  label: string;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className="px-frame min-h-11 flex-1 font-pixel text-[10px] active:translate-y-px"
-      style={{ background: bg, color: text, ['--pf' as string]: color }}
-    >
-      {children}
-    </button>
   );
 }

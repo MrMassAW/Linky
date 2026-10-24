@@ -159,7 +159,7 @@ try {
   const mustMatch = async () => {
     await page.getByRole('button', { name: 'All filters' }).click();
     const dlg = page.getByRole('dialog', { name: 'Filters' });
-    const chip = dlg.locator('section', { has: page.getByText('MUST MATCH ME', { exact: true }) }).locator('button').first();
+    const chip = dlg.locator('section', { has: page.getByText('Must match me', { exact: true }) }).locator('button').first();
     const label = await chip.textContent();
     await chip.click();
     await dlg.getByRole('button', { name: 'APPLY' }).click();
@@ -228,7 +228,7 @@ try {
   for (let k = 1; k <= 20; k++) await page.waitForTimeout(16).then(() => touch('touchMove', [[mb.x + 20 + k * 60, my + 150]]));
   await touch('touchEnd', []);
   await page.waitForTimeout(800);
-  const you = await map.getByText('YOU', { exact: true }).boundingBox();
+  const you = await map.getByText('You', { exact: true }).boundingBox();
   if (you.x < mb.x || you.x + you.width > mb.x + mb.width) throw new Error(`panned too far: YOU at x=${you.x}`);
   // Right after a pan, a real tap on a filter chip still works, and RESET clears it again.
   const strongChip = page.getByRole('group', { name: 'Quick filters' }).getByRole('button', { name: /80%\+/ });

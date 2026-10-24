@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ATTRIBUTE_LABELS, OPTION_LABELS } from '@linky/content';
 import type { AttributeKey, Attributes, Preferences, SeekingBucket } from '@linky/matching';
 import { useMe, useSession } from '../state/session';
+import { Button } from './ui';
 
 /** Lifestyle answers that can be flipped into a dealbreaker from Discover, most decisive first. */
 const KEYS: AttributeKey[] = ['goal', 'kids_want', 'kids_have', 'religion', 'smoking', 'drinking', 'cannabis', 'pets', 'politics', 'languages'];
@@ -33,7 +34,7 @@ function chipLabel(k: AttributeKey, value: unknown) {
   return PREFIXED.has(k) ? `${ATTRIBUTE_LABELS[k] ?? k}: ${text}` : text;
 }
 
-const kmLabel = (km: number | null) => (km === null ? 'ANYWHERE' : `≤${km} KM`);
+const kmLabel = (km: number | null) => (km === null ? 'Anywhere' : `≤${km} km`);
 
 function Pix({
   on,
@@ -55,12 +56,9 @@ function Pix({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="px-frame shrink-0 whitespace-nowrap px-2 text-lg leading-6 transition-colors active:translate-y-px disabled:opacity-60"
-      style={{
-        ['--pf' as string]: on ? '#ffe49a' : '#5b3a8a',
-        background: on ? '#ffe49a' : '#1a1033',
-        color: on ? '#0c0720' : '#e3d6ff',
-      }}
+      className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium shadow-sm transition active:scale-95 disabled:opacity-60 ${
+        on ? 'bg-coral-500 text-white' : 'bg-white text-plum-700 ring-1 ring-plum-100'
+      }`}
     >
       {children}
     </button>
@@ -108,10 +106,10 @@ export function QuickFilters({
       <div
         role="group"
         aria-label="Quick filters"
-        className="flex max-h-[166px] touch-pan-y flex-wrap gap-x-3 gap-y-2.5 overflow-y-auto p-[3px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex max-h-[166px] touch-pan-y flex-wrap gap-2 overflow-y-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <Pix on={open} onClick={() => setOpen(!open)} label="All filters">
-          <span className="font-pixel text-[9px]">FILTERS{active ? ` ${active}` : ''}</span>
+          Filters{active ? ` · ${active}` : ''}
         </Pix>
         <Pix
           on={prefs.distance_km !== null}
@@ -122,7 +120,7 @@ export function QuickFilters({
           {kmLabel(prefs.distance_km)}
         </Pix>
         <Pix on onClick={() => setOpen(true)} label="Age range">
-          AGE {prefs.age_min}-{prefs.age_max}
+          Age {prefs.age_min}–{prefs.age_max}
         </Pix>
         <Pix on={view.strong} onClick={() => onView({ ...view, strong: !view.strong })}>
           ★ {STRONG_MATCH}%+
@@ -151,8 +149,8 @@ export function QuickFilters({
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section>
-      <h3 className="font-pixel text-[9px] leading-4 text-[#9d8fc0]">{title}</h3>
-      <div className="mt-2 flex flex-wrap gap-3 p-[3px]">{children}</div>
+      <h3 className="font-sans text-xs font-semibold uppercase tracking-wide text-muted">{title}</h3>
+      <div className="mt-2 flex flex-wrap gap-2 p-0.5">{children}</div>
     </section>
   );
 }
@@ -191,7 +189,7 @@ function FilterPanel({
       <Pix onClick={() => age(k, -1)} label={`${label} down`}>
         -
       </Pix>
-      <span className="w-16 text-center text-xl leading-6" aria-live="polite">
+      <span className="w-16 text-center text-sm font-medium text-ink" aria-live="polite">
         {label} {p[k]}
       </span>
       <Pix onClick={() => age(k, 1)} label={`${label} up`}>
@@ -204,28 +202,27 @@ function FilterPanel({
     <div
       role="dialog"
       aria-label="Filters"
-      className="animate-fade-in px-frame mt-3 flex max-h-[min(70vh,520px)] flex-col gap-4 overflow-y-auto bg-[#120a26] p-4"
-      style={{ ['--pf' as string]: '#8e4fa6' }}
+      className="animate-fade-in mt-3 flex max-h-[min(70vh,520px)] flex-col gap-4 overflow-y-auto rounded-3xl bg-white p-4 text-ink shadow-xl shadow-plum-900/15 ring-1 ring-plum-100/60"
     >
-      <Section title="AGE">
+      <Section title="Age">
         <Step k="age_min" label="from" />
         <Step k="age_max" label="to" />
       </Section>
-      <Section title="DISTANCE">
+      <Section title="Distance">
         {DISTANCES.map((km) => (
           <Pix key={String(km)} on={p.distance_km === km} onClick={() => setP({ ...p, distance_km: km })}>
             {kmLabel(km)}
           </Pix>
         ))}
       </Section>
-      <Section title="SHOW ME">
+      <Section title="Show me">
         {GENDERS.map(([g, label]) => (
           <Pix key={g} on={p.genders_wanted.includes(g)} onClick={() => gender(g)}>
             {label}
           </Pix>
         ))}
       </Section>
-      <Section title="ON THE MAP">
+      <Section title="On the map">
         <Pix on={v.strong} onClick={() => setV({ ...v, strong: !v.strong })}>
           ★ {STRONG_MATCH}%+ matches
         </Pix>
@@ -234,7 +231,7 @@ function FilterPanel({
         </Pix>
       </Section>
       {answered.length > 0 && (
-        <Section title="MUST MATCH ME">
+        <Section title="Must match me">
           {answered.map((k) => (
             <Pix
               key={k}
@@ -246,17 +243,19 @@ function FilterPanel({
           ))}
         </Section>
       )}
-      <p className="text-lg leading-5 text-[#9d8fc0]">
+      <p className="text-sm text-muted">
         Must-match filters work both ways: you won’t see them and they won’t see you.{' '}
-        <Link to="/me/filters" className="text-[#ffe49a] underline">
+        <Link to="/me/filters" className="font-medium text-coral-600 underline">
           More settings
         </Link>
       </p>
-      <div className="flex gap-3 p-[3px]">
-        <Pix onClick={onClose}>CANCEL</Pix>
-        <Pix on disabled={busy} onClick={() => void onApply(p, a, v)}>
-          APPLY
-        </Pix>
+      <div className="grid grid-cols-2 gap-2">
+        <Button variant="secondary" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button busy={busy} onClick={() => void onApply(p, a, v)}>
+          Apply
+        </Button>
       </div>
     </div>
   );
