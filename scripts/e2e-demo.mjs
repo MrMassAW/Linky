@@ -153,21 +153,30 @@ try {
   await map.waitFor();
   await page.locator('[data-face]').first().waitFor();
   await shot('discover-space');
-  // Quick filters: one tap turns an answer into a dealbreaker, another turns it back.
-  // Chips: FILTERS, distance, age, verified, 80%+, then one per lifestyle answer.
-  const qf = page.getByRole('group', { name: 'Quick filters' }).locator('button').nth(5);
-  const qfLabel = await qf.textContent();
+  // Chips: FILTERS, distance, age, 80%+. Must-match answers live in the FILTERS panel.
+  const chips = page.getByRole('group', { name: 'Quick filters' }).locator('button');
+  if ((await chips.count()) !== 4) throw new Error(`expected 4 quick filter chips, got ${await chips.count()}`);
+  const mustMatch = async () => {
+    await page.getByRole('button', { name: 'All filters' }).click();
+    const dlg = page.getByRole('dialog', { name: 'Filters' });
+    const chip = dlg.locator('section', { has: page.getByText('MUST MATCH ME', { exact: true }) }).locator('button').first();
+    const label = await chip.textContent();
+    await chip.click();
+    await dlg.getByRole('button', { name: 'APPLY' }).click();
+    await dlg.waitFor({ state: 'detached' });
+    return label;
+  };
   const facesBefore = await page.locator('[data-face]:not([data-near])').count();
-  await qf.click();
-  await page.waitForFunction((l) => [...document.querySelectorAll('[aria-label="Quick filters"] button')].some((b) => b.getAttribute('aria-pressed') === 'true' && b.textContent.includes(l)), qfLabel);
+  const qfLabel = await mustMatch();
+  await page.waitForFunction((n) => document.querySelectorAll('[data-face]:not([data-near])').length < n, facesBefore);
   const facesFiltered = await page.locator('[data-face]:not([data-near])').count();
   // Whoever that filter keeps out stays on the map as a faded near match.
   const nearCount = await page.locator('[data-face][data-near]').count();
   if (nearCount === 0) throw new Error('filtered-out people should stay on the map as near matches');
   await shot('discover-quick-filter');
-  await page.getByRole('group', { name: 'Quick filters' }).locator('button').nth(5).click();
+  await mustMatch();
   await page.waitForFunction((n) => document.querySelectorAll('[data-face]:not([data-near])').length === n, facesBefore);
-  console.log(`  quick filter "${qfLabel}": ${facesBefore} -> ${facesFiltered} matches (+${nearCount} near), then back`);
+  console.log(`  must match "${qfLabel}": ${facesBefore} -> ${facesFiltered} matches (+${nearCount} near), then back`);
   // The FILTERS panel: age, distance, who to show, map-only filters, must-match answers.
   await page.getByRole('button', { name: 'All filters' }).click();
   const panel = page.getByRole('dialog', { name: 'Filters' });

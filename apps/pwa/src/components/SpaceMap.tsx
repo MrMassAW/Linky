@@ -102,6 +102,7 @@ export function SpaceMap({
   items,
   nearIds,
   note,
+  noteAlert,
   shared,
   myPhoto,
   pickedId,
@@ -115,6 +116,8 @@ export function SpaceMap({
   nearIds?: Set<string>;
   /** Replaces the usual hint line at the bottom. */
   note?: string;
+  /** Show the note as a bright callout (e.g. nobody fits the filters). */
+  noteAlert?: boolean;
   /** What I share with each person, by profile id. */
   shared: Record<string, SharedThing[]>;
   myPhoto?: string;
@@ -441,7 +444,7 @@ export function SpaceMap({
           const score = n.it.compatibility.total;
           const color = tierColor(score);
           const w = Math.max(1, (score - 50) / 14) * Math.min(1.3, faceScale);
-          const op = (n.it.passed_at && !(picked === n) ? 0.06 : lit(n) ? 0.75 : 0.08) * (nearIds?.has(n.it.profile.id) && picked !== n ? 0.65 : 1);
+          const op = (n.it.passed_at && !(picked === n) ? 0.12 : lit(n) ? 0.75 : 0.08) * (nearIds?.has(n.it.profile.id) && picked !== n ? 0.5 : 1);
           return n.hubs.length ? (
             n.hubs.map((k) => (
               <line key={`${n.it.profile.id}-${k}`} x1={hubPts[k].x} y1={hubPts[k].y} x2={n.x} y2={n.y} stroke={color} strokeWidth={w} opacity={op} />
@@ -512,7 +515,7 @@ export function SpaceMap({
               left: x - s / 2,
               top: y - s / 2,
               zIndex: picked ? 5 : 1,
-              opacity: passed && !picked ? 0.1 : dim ? 0.3 : nearIds?.has(p.id) && !picked ? 0.65 : 1,
+              opacity: passed && !picked ? 0.2 : dim ? 0.3 : nearIds?.has(p.id) && !picked ? 0.5 : 1,
             }}
           >
             <button
@@ -561,7 +564,15 @@ export function SpaceMap({
         RESET
       </button>
 
-      {!pickedId && (
+      {!pickedId && noteAlert && note && !hubPick.length ? (
+        <p
+          role="status"
+          className="px-frame pointer-events-none absolute bottom-3 left-4 right-24 z-10 bg-[#ffe49a] px-3 py-2 text-xl leading-6 text-[#0c0720] shadow-[0_0_24px_6px_rgba(255,228,154,0.35)]"
+          style={{ ['--pf' as string]: '#ffa33a' }}
+        >
+          {note}
+        </p>
+      ) : !pickedId && (
         <p className="pointer-events-none absolute bottom-3 left-4 right-24 text-lg leading-5 text-[#9d8fc0]">
           {hubPick.length
             ? `${sharingAll} ${sharingAll === 1 ? 'person shares' : 'people share'} ${hubPick.length > 1 ? 'all of these' : 'this'}. Tap more stars to narrow down.`

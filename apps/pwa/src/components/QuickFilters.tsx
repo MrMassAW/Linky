@@ -18,11 +18,10 @@ export const STRONG_MATCH = 80;
 
 /** Filters that only change what the map shows; nothing is saved to the profile. */
 export interface ViewFilters {
-  verified: boolean;
   strong: boolean;
   hidePassed: boolean;
 }
-export const NO_VIEW_FILTERS: ViewFilters = { verified: false, strong: false, hidePassed: false };
+export const NO_VIEW_FILTERS: ViewFilters = { strong: false, hidePassed: false };
 
 const asList = (v: unknown): string[] => (Array.isArray(v) ? v.map(String) : v == null || v === '' ? [] : [String(v)]);
 
@@ -101,10 +100,6 @@ export function QuickFilters({
   const prefs = me.preferences;
   const answered = KEYS.filter((k) => asList(me.attributes[k]?.value).length > 0);
   const nextKm = DISTANCES[(DISTANCES.indexOf(prefs.distance_km) + 1) % DISTANCES.length] ?? null;
-  const flip = (k: AttributeKey): Attributes => ({
-    ...me.attributes,
-    [k]: { ...me.attributes[k]!, is_dealbreaker: !me.attributes[k]!.is_dealbreaker },
-  });
   const active =
     answered.filter((k) => me.attributes[k]?.is_dealbreaker).length + Object.values(view).filter(Boolean).length;
 
@@ -129,17 +124,9 @@ export function QuickFilters({
         <Pix on onClick={() => setOpen(true)} label="Age range">
           AGE {prefs.age_min}-{prefs.age_max}
         </Pix>
-        <Pix on={view.verified} onClick={() => onView({ ...view, verified: !view.verified })}>
-          ✓ VERIFIED
-        </Pix>
         <Pix on={view.strong} onClick={() => onView({ ...view, strong: !view.strong })}>
           ★ {STRONG_MATCH}%+
         </Pix>
-        {answered.map((k) => (
-          <Pix key={k} on={Boolean(me.attributes[k]?.is_dealbreaker)} disabled={busy} onClick={() => void save(null, flip(k))}>
-            {chipLabel(k, me.attributes[k]?.value)}
-          </Pix>
-        ))}
       </div>
       {open && (
         <FilterPanel
@@ -239,9 +226,6 @@ function FilterPanel({
         ))}
       </Section>
       <Section title="ON THE MAP">
-        <Pix on={v.verified} onClick={() => setV({ ...v, verified: !v.verified })}>
-          ✓ Verified only
-        </Pix>
         <Pix on={v.strong} onClick={() => setV({ ...v, strong: !v.strong })}>
           ★ {STRONG_MATCH}%+ matches
         </Pix>

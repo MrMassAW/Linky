@@ -14,7 +14,9 @@ const VIEW_KEY = 'linky-discover-filters';
 
 function savedView(): ViewFilters {
   try {
-    return { ...NO_VIEW_FILTERS, ...JSON.parse(localStorage.getItem(VIEW_KEY) ?? '{}') };
+    // Only known keys, so a filter from an older build (like `verified`) is dropped.
+    const saved = JSON.parse(localStorage.getItem(VIEW_KEY) ?? '{}') as Partial<ViewFilters>;
+    return { strong: saved.strong === true, hidePassed: saved.hidePassed === true };
   } catch {
     return NO_VIEW_FILTERS;
   }
@@ -59,7 +61,6 @@ export default function Discover() {
   // my profile filters) faded.
   const { items, nearIds } = useMemo(() => {
     const fits = (i: FeedItem) =>
-      (!view.verified || i.profile.verified) &&
       (!view.strong || i.compatibility.total >= STRONG_MATCH) &&
       (!view.hidePassed || !i.passed_at);
     const all = [...(feed.data ?? []), ...(near.data ?? [])]
@@ -205,6 +206,7 @@ export default function Discover() {
           onPick={setPickId}
           toolbar={filters()}
           onReset={() => void resetFilters()}
+          noteAlert={matchCount === 0}
           note={
             matchCount === 0
               ? items.length
