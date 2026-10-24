@@ -122,6 +122,9 @@ export function SpaceMap({
   const { hubs, hubAngle, nodes } = useMemo(() => layoutConstellation(items, shared), [items, shared]);
   const box = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 360, h: 560 });
+  // Height the filters take at the top; the sky centers in the space left below them.
+  const [topInset, setTopInset] = useState(0);
+  const bar = useRef<HTMLDivElement>(null);
   // z: null until the user zooms, so the map keeps fitting everyone. x/y: pan offset of the center.
   const [view, setView] = useState<{ z: number | null; x: number; y: number }>({ z: null, x: 0, y: 0 });
   const pointers = useRef(new Map<number, { x: number; y: number }>());
@@ -185,31 +188,46 @@ export function SpaceMap({
     return () => ro.disconnect();
   }, []);
 
+  useLayoutEffect(() => {
+    const row = bar.current?.querySelector<HTMLElement>('[role=group]');
+    if (!row) return setTopInset(0);
+    const measure = () => setTopInset(row.getBoundingClientRect().bottom - box.current!.getBoundingClientRect().top + 8);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(row);
+    return () => ro.disconnect();
+  }, [toolbar !== undefined]);
+
+  // The stage is the card minus the filters on top and the hint line at the bottom.
+  const HINT = 56;
+  const stage = { w: size.w, h: Math.max(200, size.h - topInset - HINT), top: topInset };
+
   // Start zoomed so most people (the closest three quarters) are in view; zoom out for the rest.
   const farthest = items.reduce((m, i) => Math.max(m, orbitRadius(i.compatibility.total)), orbitRadius(90)) + 140;
   const fitFor = (n: Node) => {
     const r = orbitRadius(n.it.compatibility.total);
     const room = (half: number) => half - 30 - 110; // star ring and face margin
     return Math.min(
-      room(size.w / 2) / Math.max(1, Math.abs(r * Math.cos(n.angle))),
-      room(size.h / 2) / Math.max(1, Math.abs(r * Math.sin(n.angle) * EY)),
+      room(stage.w / 2) / Math.max(1, Math.abs(r * Math.cos(n.angle))),
+      room(stage.h / 2) / Math.max(1, Math.abs(r * Math.sin(n.angle) * EY)),
     );
   };
   const fits = nodes.map(fitFor).sort((a, b) => b - a);
   const fit = clampZoom(Math.min(1.2, fits[Math.floor(fits.length * 0.75)] ?? 1));
   const z = view.z ?? fit;
-  const geom = useRef({ fit, size, farthest });
-  geom.current = { fit, size, farthest };
+  const geom = useRef({ fit, stage, farthest });
+  geom.current = { fit, stage, farthest };
 
   /** Zoom by `factor` keeping the screen point (mx, my) fixed, then pan by (dx, dy). */
   const zoomAt = useCallback((factor: number, mx: number, my: number, dx = 0, dy = 0) => {
     setView((v) => {
-      const { fit: f, size: sz, farthest: far } = geom.current;
+      const { fit: f, stage: sz, farthest: far } = geom.current;
+      const midY = sz.top + sz.h / 2;
       const z0 = v.z ?? f;
       const z1 = clampZoom(z0 * factor);
       const k = z1 / z0;
       const cx = sz.w / 2 + v.x;
-      const cy = sz.h / 2 + v.y;
+      const cy = midY + v.y;
       // Pan only far enough to bring the outermost orbit to the edge, plus a little slack.
       const limitX = Math.max(0, far * z1 - sz.w / 2) + sz.w * 0.25;
       const limitY = Math.max(0, far * z1 - sz.h / 2) + sz.h * 0.25;
@@ -217,7 +235,7 @@ export function SpaceMap({
       return {
         z: z1,
         x: clamp(mx - (mx - cx) * k - sz.w / 2 + dx, limitX),
-        y: clamp(my - (my - cy) * k - sz.h / 2 + dy, limitY),
+        y: clamp(my - (my - cy) * k - midY + dy, limitY),
       };
     });
   }, []);
@@ -295,7 +313,7 @@ export function SpaceMap({
   };
 
   const cx = size.w / 2 + view.x;
-  const cy = size.h / 2 + view.y;
+  const cy = stage.top + stage.h / 2 + view.y;
   const faceScale = Math.max(0.75, Math.min(1.45, Math.sqrt(z)));
   const youSize = Math.round(50 * faceScale);
   const showAllScores = z >= 0.75;
@@ -526,7 +544,7 @@ export function SpaceMap({
         </p>
       )}
 
-      {toolbar}
+      {toolbar && <div ref={bar}>{toolbar}</div>}
       {children}
     </div>
   );
