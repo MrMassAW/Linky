@@ -27,7 +27,7 @@ export default function Discover() {
   const me = useMe();
   const nav = useNavigate();
   const feed = useLoader(() => backend.getFeed(), [backend]);
-  // People only my own filters keep out; they float on the map at half strength.
+  // People only my own filters keep out; they float on the map, faded.
   const near = useLoader(() => backend.getNearMatches?.() ?? Promise.resolve([]), [backend]);
   const [view, setViewState] = useState<ViewFilters>(savedView);
   // People you liked or blocked leave the map; people you passed on stay, faded, for a day.

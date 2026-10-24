@@ -111,7 +111,7 @@ export function SpaceMap({
   children,
 }: {
   items: FeedItem[];
-  /** Near matches: shown at half strength. */
+  /** Near matches: shown faded. */
   nearIds?: Set<string>;
   /** Replaces the usual hint line at the bottom. */
   note?: string;
@@ -441,13 +441,13 @@ export function SpaceMap({
           const score = n.it.compatibility.total;
           const color = tierColor(score);
           const w = Math.max(1, (score - 50) / 14) * Math.min(1.3, faceScale);
-          const op = (n.it.passed_at && !(picked === n) ? 0.06 : lit(n) ? 0.75 : 0.08) * (nearIds?.has(n.it.profile.id) && picked !== n ? 0.5 : 1);
+          const op = (n.it.passed_at && !(picked === n) ? 0.06 : lit(n) ? 0.75 : 0.08) * (nearIds?.has(n.it.profile.id) && picked !== n ? 0.65 : 1);
           return n.hubs.length ? (
             n.hubs.map((k) => (
               <line key={`${n.it.profile.id}-${k}`} x1={hubPts[k].x} y1={hubPts[k].y} x2={n.x} y2={n.y} stroke={color} strokeWidth={w} opacity={op} />
             ))
           ) : (
-            <line key={n.it.profile.id} x1={cx} y1={cy} x2={n.x} y2={n.y} stroke={color} strokeWidth={1} strokeDasharray="3 5" opacity={op * 0.6} />
+            <line key={n.it.profile.id} x1={cx} y1={cy} x2={n.x} y2={n.y} stroke={color} strokeWidth={1} strokeDasharray="3 5" opacity={op * 0.8} />
           );
         })}
       </svg>
@@ -512,7 +512,7 @@ export function SpaceMap({
               left: x - s / 2,
               top: y - s / 2,
               zIndex: picked ? 5 : 1,
-              opacity: passed && !picked ? 0.1 : dim ? 0.3 : nearIds?.has(p.id) && !picked ? 0.5 : 1,
+              opacity: passed && !picked ? 0.1 : dim ? 0.3 : nearIds?.has(p.id) && !picked ? 0.65 : 1,
             }}
           >
             <button
