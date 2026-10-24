@@ -1,0 +1,141 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-coral-50: #fff3f1;
+  --color-coral-100: #ffe1dc;
+  --color-coral-200: #ffc2b8;
+  --color-coral-400: #ff7a6b;
+  --color-coral-500: #e8505b;
+  --color-coral-600: #cf3a4a;
+  --color-plum-50: #f7eff5;
+  --color-plum-100: #ecd9e7;
+  --color-plum-500: #8b3a74;
+  --color-plum-700: #5e2550;
+  --color-plum-900: #2f1228;
+  --color-cream: #fff8f4;
+  --color-ink: #2a1f2d;
+  --color-muted: #7a6b78;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+  --font-pixel: 'Press Start 2P', ui-monospace, monospace;
+  --font-retro: 'VT323', ui-monospace, monospace;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-cream text-ink antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight;
+  }
+  input,
+  textarea,
+  select {
+    @apply w-full rounded-xl border border-plum-100 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-coral-400 focus:ring-2 focus:ring-coral-100;
+  }
+  input[type='checkbox'],
+  input[type='radio'] {
+    @apply w-auto accent-coral-500;
+  }
+  input[type='range'] {
+    @apply border-0 bg-transparent p-0 accent-coral-500 focus:ring-0;
+  }
+  label {
+    @apply text-sm font-medium text-plum-700;
+  }
+}
+
+/* Stepped 'pixel' border; set --pf for the color. */
+@utility px-frame {
+  box-shadow:
+    0 -3px 0 0 var(--pf, #8e4fa6),
+    0 3px 0 0 var(--pf, #8e4fa6),
+    -3px 0 0 0 var(--pf, #8e4fa6),
+    3px 0 0 0 var(--pf, #8e4fa6);
+}
+
+@utility safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes shoot {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(420px);
+    opacity: 0;
+  }
+}
+.animate-twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+}
+.animate-shoot {
+  animation: shoot 0.9s ease-in both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-twinkle,
+  .animate-shoot {
+    animation: none;
+  }
+}
+.animate-pop {
+  animation: pop 0.35s ease-out both;
+}
+.animate-slide-up {
+  animation: slide-up 0.25s ease-out both;
+}
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out both;
+}

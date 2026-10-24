@@ -1,0 +1,30 @@
+# Minimal Supabase CLI config. `supabase init` would generate a fuller one;
+# these are the settings Linky relies on.
+project_id = "linky"
+
+[db]
+major_version = 15
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[auth]
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173/auth/callback"]
+
+[auth.email]
+enable_signup = true
+
+[auth.external.google]
+enabled = false
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
+
+[auth.external.apple]
+enabled = false
+client_id = "env(APPLE_CLIENT_ID)"
+secret = "env(APPLE_CLIENT_SECRET)"
+
+[functions.notify]
+verify_jwt = false # called by a database webhook with x-webhook-secret
