@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { FeedExplainer } from '../components/FeedExplainer';
@@ -7,6 +7,7 @@ import { ProfileCard, type LikeTarget } from '../components/ProfileCard';
 import { SafetySheet } from '../components/SafetySheet';
 import { QuickCard, SpaceMap } from '../components/SpaceMap';
 import { Button, ChevronLeft, Empty, ErrorText, FullPageSpinner, Logo, Sheet, XIcon } from '../components/ui';
+import { sharedThings } from '../lib/sharedThings';
 import type { FeedItem } from '../lib/types';
 
 type Mode = 'space' | 'list';
@@ -53,9 +54,17 @@ export default function Discover() {
     }
   };
 
-  const items: FeedItem[] = (feed.data ?? [])
-    .filter((i) => !done.has(i.profile.id))
-    .map((i) => (passedNow[i.profile.id] ? { ...i, passed_at: passedNow[i.profile.id] } : i));
+  const items: FeedItem[] = useMemo(
+    () =>
+      (feed.data ?? [])
+        .filter((i) => !done.has(i.profile.id))
+        .map((i) => (passedNow[i.profile.id] ? { ...i, passed_at: passedNow[i.profile.id] } : i)),
+    [feed.data, done, passedNow],
+  );
+  const shared = useMemo(
+    () => Object.fromEntries((feed.data ?? []).map((i) => [i.profile.id, sharedThings(me, i.profile)])),
+    [feed.data, me],
+  );
   const queue = items.filter((i) => !i.passed_at);
   const focusId = mode === 'list' ? (queue[0]?.profile.id ?? null) : (openId ?? pickId);
   const item = items.find((i) => i.profile.id === focusId);
@@ -172,11 +181,12 @@ export default function Discover() {
         </Empty>
       ) : mode === 'space' ? (
         <div className="h-[calc(100dvh-10.5rem)] min-h-[440px]">
-          <SpaceMap items={items} myPhoto={me.photos[0]?.url} pickedId={pickId} onPick={setPickId}>
+          <SpaceMap items={items} shared={shared} myPhoto={me.photos[0]?.url} pickedId={pickId} onPick={setPickId}>
             {picked && !opened && (
               <QuickCard
                 key={picked.profile.id}
                 item={picked}
+                shared={shared[picked.profile.id]}
                 onClose={() => setPickId(null)}
                 onPass={() => void skip(picked)}
                 onOpen={() => setOpenId(picked.profile.id)}

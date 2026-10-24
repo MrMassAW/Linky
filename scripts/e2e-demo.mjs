@@ -190,14 +190,22 @@ try {
   for (let k = 1; k <= 20; k++) await page.waitForTimeout(16).then(() => touch('touchMove', [[mb.x + 20 + k * 60, my + 150]]));
   await touch('touchEnd', []);
   await page.waitForTimeout(800);
-  const you = await map.getByText('YOU').boundingBox();
+  const you = await map.getByText('YOU', { exact: true }).boundingBox();
   if (you.x < mb.x || you.x + you.width > mb.x + mb.width) throw new Error(`panned too far: YOU at x=${you.x}`);
   await click('FIT');
+  // Stars are shared things: tapping one highlights who shares it.
+  const hub = page.locator('[data-hub]').first();
+  console.log(`  stars: ${(await page.locator('[data-hub]').allTextContents()).join(' | ')}`);
+  await hub.dispatchEvent('click');
+  if ((await hub.getAttribute('aria-pressed')) !== 'true') throw new Error('star did not toggle on');
+  await shot('discover-star');
+  await hub.dispatchEvent('click');
   const openFirst = async () => {
     await page.locator('[data-face]:not([aria-label$="passed"])').first().dispatchEvent('click');
     await page.locator('section[aria-label$="quick look"]').waitFor();
   };
   await openFirst();
+  await page.locator('ul[aria-label="What connects you"]').waitFor();
   await shot('quick-card');
   await page.getByRole('button', { name: /^Pass on / }).click();
   await page.locator('[data-face][aria-label$="passed"]').first().waitFor();

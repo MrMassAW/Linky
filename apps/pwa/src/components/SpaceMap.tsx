@@ -1,28 +1,81 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { TYPE_NICKNAMES } from '@linky/content';
+import { pickHubs, type SharedThing } from '../lib/sharedThings';
 import type { FeedItem } from '../lib/types';
 import { VerifiedBadge } from './ui';
 
-const RINGS = [90, 80, 70, 60, 50];
-const MIN_ZOOM = 0.35;
+const RINGS = [90, 80, 70, 60];
+const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 2.6;
 const STARS = `${import.meta.env.BASE_URL}space/stars.png`;
+/** The screen is tall, so the constellation is an ellipse stretched vertically. */
+const EY = 1.35;
 
-/** World-space distance from the center: the stronger the match, the closer the orbit. */
-export const orbitRadius = (score: number) => 64 + (100 - Math.max(0, Math.min(100, score))) * 5.2;
+/** World-space distance beyond the ring of shared-thing stars: the stronger the match, the closer. */
+export const orbitRadius = (score: number) => (100 - Math.max(0, Math.min(100, score))) * 4.6;
 
+/** Match % bands: gold 90+, coral 80s, plum 70s, slate below. */
 export function tierColor(score: number) {
-  return score >= 90 ? '#ffe49a' : score >= 80 ? '#ffa08e' : '#b9c6d6';
+  return score >= 90 ? '#ffe49a' : score >= 80 ? '#ffa08e' : score >= 70 ? '#c99be0' : '#9fb0c8';
 }
 
 const clampZoom = (z: number) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z));
 const angleOf = (i: number) => i * 2.399963 + 0.5; // golden angle keeps neighbours apart
 
-/** Orbit speed in radians per second: inner orbits run faster (loosely Kepler), each face a little different. */
-const orbitSpeed = (score: number, i: number) => {
-  const wobble = 0.65 + ((i * 0.618034) % 1) * 0.7;
-  return (0.05 / Math.sqrt(orbitRadius(score) / 100)) * wobble * (i % 5 === 0 ? -1 : 1);
-};
+/** Each face sways a little around its spot, at its own pace. */
+const sway = (i: number, t: number) => Math.sin(t * (0.25 + ((i * 0.618034) % 1) * 0.5) + i) * 0.05;
+
+interface Node {
+  it: FeedItem;
+  angle: number;
+  hubs: number[];
+  shared: SharedThing[];
+}
+
+/**
+ * Lay people out around the shared-thing stars: each person sits in the direction of the stars
+ * they share with you (between them when there are several), and people who land in the same
+ * direction fan out a little so faces don't stack.
+ */
+function layoutConstellation(items: FeedItem[], shared: Record<string, SharedThing[]>) {
+  const hubs = pickHubs(items.map((i) => shared[i.profile.id] ?? []));
+  const hubAngle = hubs.map((_, i) => -Math.PI / 2 + (i / Math.max(1, hubs.length)) * Math.PI * 2);
+  const nodes: Node[] = items.map((it, i) => {
+    const mine = shared[it.profile.id] ?? [];
+    const idx = hubs.map((h, k) => (mine.some((m) => m.key === h.key) ? k : -1)).filter((k) => k >= 0);
+    let angle = angleOf(i);
+    if (idx.length) {
+      const vx = idx.reduce((sum, k) => sum + Math.cos(hubAngle[k]), 0);
+      const vy = idx.reduce((sum, k) => sum + Math.sin(hubAngle[k]), 0);
+      angle = Math.hypot(vx, vy) < 1e-6 ? hubAngle[idx[0]] + 0.4 : Math.atan2(vy, vx);
+    }
+    const TAU = Math.PI * 2;
+    return { it, angle: ((angle % TAU) + TAU) % TAU, hubs: idx, shared: mine };
+  });
+  // Spread faces around the circle so people pulled toward the same star don't pile up:
+  // neighbours closer than minGap push each other apart, keeping their order.
+  const n = nodes.length;
+  if (n > 1) {
+    const minGap = Math.min(0.32, (0.9 * Math.PI * 2) / n);
+    const ring = [...nodes].sort((a, b) => a.angle - b.angle);
+    for (let pass = 0; pass < 40; pass++) {
+      let moved = false;
+      for (let k = 0; k < n; k++) {
+        const a = ring[k];
+        const b = ring[(k + 1) % n];
+        const gap = k === n - 1 ? b.angle + Math.PI * 2 - a.angle : b.angle - a.angle;
+        if (gap < minGap - 1e-3) {
+          const push = (minGap - gap) / 2;
+          a.angle -= push;
+          b.angle += push;
+          moved = true;
+        }
+      }
+      if (!moved) break;
+    }
+  }
+  return { hubs, hubAngle, nodes };
+}
 
 // Twinkling stars laid over the starfield, spread wider than the view so panning reveals more.
 const TWINKLES = Array.from({ length: 46 }, (_, i) => {
@@ -47,17 +100,22 @@ const reducedMotion = () =>
  */
 export function SpaceMap({
   items,
+  shared,
   myPhoto,
   pickedId,
   onPick,
   children,
 }: {
   items: FeedItem[];
+  /** What I share with each person, by profile id. */
+  shared: Record<string, SharedThing[]>;
   myPhoto?: string;
   pickedId: string | null;
   onPick: (id: string | null) => void;
   children?: ReactNode;
 }) {
+  const [hubPick, setHubPick] = useState<number | null>(null);
+  const { hubs, hubAngle, nodes } = useMemo(() => layoutConstellation(items, shared), [items, shared]);
   const box = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 360, h: 560 });
   // z: null until the user zooms, so the map keeps fitting everyone. x/y: pan offset of the center.
@@ -123,15 +181,18 @@ export function SpaceMap({
     return () => ro.disconnect();
   }, []);
 
-  // Start zoomed so the farthest person is just in view.
-  const farthest = items.reduce((m, i) => Math.max(m, orbitRadius(i.compatibility.total)), orbitRadius(90));
-  let fit = MAX_ZOOM;
-  items.forEach((it, i) => {
-    const r = orbitRadius(it.compatibility.total);
-    const a = angleOf(i);
-    fit = Math.min(fit, (size.w / 2 - 36) / Math.max(1, Math.abs(r * Math.cos(a))), (size.h / 2 - 48) / Math.max(1, Math.abs(r * Math.sin(a))));
-  });
-  fit = clampZoom(Math.min(fit, 1.2));
+  // Start zoomed so most people (the closest three quarters) are in view; zoom out for the rest.
+  const farthest = items.reduce((m, i) => Math.max(m, orbitRadius(i.compatibility.total)), orbitRadius(90)) + 140;
+  const fitFor = (n: Node) => {
+    const r = orbitRadius(n.it.compatibility.total);
+    const room = (half: number) => half - 30 - 110; // star ring and face margin
+    return Math.min(
+      room(size.w / 2) / Math.max(1, Math.abs(r * Math.cos(n.angle))),
+      room(size.h / 2) / Math.max(1, Math.abs(r * Math.sin(n.angle) * EY)),
+    );
+  };
+  const fits = nodes.map(fitFor).sort((a, b) => b - a);
+  const fit = clampZoom(Math.min(1.2, fits[Math.floor(fits.length * 0.75)] ?? 1));
   const z = view.z ?? fit;
   const geom = useRef({ fit, size, farthest });
   geom.current = { fit, size, farthest };
@@ -231,10 +292,19 @@ export function SpaceMap({
 
   const cx = size.w / 2 + view.x;
   const cy = size.h / 2 + view.y;
-  const faceScale = Math.max(0.7, Math.min(1.45, Math.sqrt(z)));
-  const youSize = Math.round(58 * faceScale);
+  const faceScale = Math.max(0.75, Math.min(1.45, Math.sqrt(z)));
+  const youSize = Math.round(50 * faceScale);
   const showAllScores = z >= 0.75;
   const showNames = z >= 1.35;
+  const rot = time * 0.01; // the whole constellation turns very slowly
+  const hubR = 84 * Math.max(0.9, Math.min(1.4, Math.sqrt(z)));
+  const ringR = (score: number) => hubR + 26 + orbitRadius(score) * z;
+  const at = (angle: number, r: number) => ({ x: cx + r * Math.cos(angle + rot), y: cy + r * Math.sin(angle + rot) * EY });
+  const hubPts = hubAngle.map((a) => at(a, hubR));
+  const picked = nodes.find((n) => n.it.profile.id === pickedId);
+  const placed = nodes.map((n, i) => ({ ...n, ...at(n.angle + sway(i, time), ringR(n.it.compatibility.total)) }));
+  const lit = (n: Node) =>
+    hubPick !== null ? n.hubs.includes(hubPick) : picked ? n === picked : true;
 
   return (
     <div
@@ -260,7 +330,10 @@ export function SpaceMap({
         }
       }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onPick(null);
+        if (e.target === e.currentTarget) {
+          onPick(null);
+          setHubPick(null);
+        }
       }}
     >
       <div
@@ -300,22 +373,50 @@ export function SpaceMap({
       )}
 
       {RINGS.map((score) => {
-        const r = orbitRadius(score) * z;
+        const r = ringR(score);
         return (
           <div key={score} aria-hidden="true">
             <div
-              className="pointer-events-none absolute rounded-full border-2 border-dashed border-[#c99be0]/25"
-              style={{ left: cx - r, top: cy - r, width: r * 2, height: r * 2 }}
+              className="pointer-events-none absolute rounded-[50%] border border-dashed border-[#c99be0]/20"
+              style={{ left: cx - r, top: cy - r * EY, width: r * 2, height: r * 2 * EY }}
             />
             <span
-              className="pointer-events-none absolute bg-[#0c0720] px-1 font-pixel text-[8px] text-[#9d8fc0]"
-              style={{ left: cx + r * 0.71 - 14, top: cy - r * 0.71 - 6 }}
+              className="pointer-events-none absolute bg-[#0c0720] px-1 font-pixel text-[7px] text-[#9d8fc0]/80"
+              style={{ left: cx - r * 0.71 - 12, top: cy - r * 0.71 * EY - 6 }}
             >
               {score}%
             </span>
           </div>
         );
       })}
+
+      <svg aria-hidden="true" className="pointer-events-none absolute inset-0" width={size.w} height={size.h}>
+        {hubPts.map((h, k) => (
+          <line
+            key={`h${k}`}
+            x1={cx}
+            y1={cy}
+            x2={h.x}
+            y2={h.y}
+            stroke="#ffe49a"
+            strokeWidth={2.5}
+            opacity={hubPick === null ? (picked ? (picked.hubs.includes(k) ? 0.9 : 0.15) : 0.7) : hubPick === k ? 0.95 : 0.12}
+          />
+        ))}
+        {placed.map((n) => {
+          const score = n.it.compatibility.total;
+          const color = tierColor(score);
+          const w = Math.max(1, (score - 50) / 14) * Math.min(1.3, faceScale);
+          const op = n.it.passed_at && !(picked === n) ? 0.06 : lit(n) ? 0.75 : 0.08;
+          return n.hubs.length ? (
+            n.hubs.map((k) => (
+              <line key={`${n.it.profile.id}-${k}`} x1={hubPts[k].x} y1={hubPts[k].y} x2={n.x} y2={n.y} stroke={color} strokeWidth={w} opacity={op} />
+            ))
+          ) : (
+            <line key={n.it.profile.id} x1={cx} y1={cy} x2={n.x} y2={n.y} stroke={color} strokeWidth={1} strokeDasharray="3 5" opacity={op * 0.6} />
+          );
+        })}
+      </svg>
 
       <div
         className="pointer-events-none absolute flex flex-col items-center"
@@ -330,22 +431,50 @@ export function SpaceMap({
         <span className="mt-2 bg-[#0c0720] px-1 font-pixel text-[8px] text-[#ffe49a]">YOU</span>
       </div>
 
-      {items.map((it, i) => {
+      {hubs.map((h, k) => {
+        const on = hubPick === k;
+        const count = nodes.filter((n) => n.hubs.includes(k)).length;
+        return (
+          <button
+            key={h.key}
+            type="button"
+            data-hub={h.label}
+            aria-pressed={on}
+            aria-label={`${h.label}: ${count} people share this with you`}
+            onClick={() => {
+              setHubPick(on ? null : k);
+              onPick(null);
+            }}
+            className="absolute z-[3] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap px-1.5 text-base leading-5 active:translate-y-[calc(-50%+1px)]"
+            style={{
+              left: hubPts[k].x,
+              top: hubPts[k].y,
+              color: on ? '#0c0720' : '#ffe49a',
+              background: on ? '#ffe49a' : '#1a1033',
+              boxShadow: '0 -2px 0 0 #ffe49a, 0 2px 0 0 #ffe49a, -2px 0 0 0 #ffe49a, 2px 0 0 0 #ffe49a',
+              opacity: hubPick === null || on ? 1 : 0.5,
+            }}
+          >
+            {h.label} <span className="opacity-70">{count}</span>
+          </button>
+        );
+      })}
+
+      {placed.map((n) => {
+        const it = n.it;
         const p = it.profile;
         const score = it.compatibility.total;
-        const a = angleOf(i) + time * orbitSpeed(score, i);
-        const r = orbitRadius(score) * z;
-        const x = cx + r * Math.cos(a);
-        const y = cy + r * Math.sin(a);
+        const { x, y } = n;
         const s = Math.round((30 + (score - 50) * 0.45) * faceScale);
         const picked = pickedId === p.id;
         const passed = Boolean(it.passed_at);
         const color = tierColor(score);
+        const dim = !lit(n) && !picked;
         return (
           <div
             key={p.id}
-            className="absolute transition-opacity duration-700"
-            style={{ left: x - s / 2, top: y - s / 2, zIndex: picked ? 5 : 1, opacity: passed && !picked ? 0.1 : 1 }}
+            className="absolute transition-opacity duration-500"
+            style={{ left: x - s / 2, top: y - s / 2, zIndex: picked ? 5 : 1, opacity: passed && !picked ? 0.1 : dim ? 0.3 : 1 }}
           >
             <button
               type="button"
@@ -364,7 +493,7 @@ export function SpaceMap({
             >
               {p.photos[0] && <img src={p.photos[0].url} alt="" className="h-full w-full object-cover" draggable={false} />}
             </button>
-            {(showAllScores || score >= 85 || picked) && (!passed || picked) && (
+            {(showAllScores || score >= 85 || picked) && (!passed || picked) && !dim && (
               <div className="pointer-events-none absolute left-1/2 top-full mt-1.5 flex w-28 -translate-x-1/2 flex-col items-center">
                 {(showNames || picked) && (
                   <span className="bg-[#0c0720]/80 px-1 text-lg leading-4">{p.name}</span>
@@ -384,7 +513,10 @@ export function SpaceMap({
         <ZoomButton label="Zoom out" onClick={() => zoomAt(1 / 1.4, size.w / 2, size.h / 2)}>-</ZoomButton>
         <button
           type="button"
-          onClick={() => setView({ z: null, x: 0, y: 0 })}
+          onClick={() => {
+            setView({ z: null, x: 0, y: 0 });
+            setHubPick(null);
+          }}
           className="mt-1 h-11 px-1 font-pixel text-[8px] text-[#c9b8ea] underline"
         >
           FIT
@@ -393,7 +525,7 @@ export function SpaceMap({
 
       {!pickedId && (
         <p className="pointer-events-none absolute bottom-3 left-4 right-16 text-lg leading-5 text-[#9d8fc0]">
-          Closer orbit = stronger match. Pinch to zoom, tap a face.
+          Stars = what you share. Closer = stronger match. Tap a star or a face.
         </p>
       )}
 
@@ -425,12 +557,14 @@ const BAR_LABELS: [keyof FeedItem['compatibility'], string][] = [
 /** The quick look shown when a face is tapped. "Open" shows the full profile card. */
 export function QuickCard({
   item,
+  shared,
   onClose,
   onPass,
   onOpen,
   onLike,
 }: {
   item: FeedItem;
+  shared?: SharedThing[];
   onClose: () => void;
   onPass: () => void;
   onOpen: () => void;
@@ -497,6 +631,19 @@ export function QuickCard({
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {shared && shared.length > 0 && (
+        <div>
+          <div className="text-base leading-4 text-[#9d8fc0]">What connects you</div>
+          <ul className="mt-1 flex flex-wrap gap-1.5" aria-label="What connects you">
+            {shared.slice(0, 5).map((t) => (
+              <li key={t.key} className="bg-[#2a1d48] px-2 text-lg leading-6 text-[#ffe49a]">
+                {t.label}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
