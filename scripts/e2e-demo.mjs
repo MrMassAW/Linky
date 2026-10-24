@@ -154,16 +154,32 @@ try {
   await page.locator('[data-face]').first().waitFor();
   await shot('discover-space');
   // Quick filters: one tap turns an answer into a dealbreaker, another turns it back.
-  const qf = page.getByRole('group', { name: 'Quick filters' }).locator('button').nth(1);
+  // Chips: FILTERS, distance, age, verified, 80%+, then one per lifestyle answer.
+  const qf = page.getByRole('group', { name: 'Quick filters' }).locator('button').nth(5);
   const qfLabel = await qf.textContent();
   const facesBefore = await page.locator('[data-face]').count();
   await qf.click();
   await page.waitForFunction((l) => [...document.querySelectorAll('[aria-label="Quick filters"] button')].some((b) => b.getAttribute('aria-pressed') === 'true' && b.textContent.includes(l)), qfLabel);
   const facesFiltered = await page.locator('[data-face]').count();
   await shot('discover-quick-filter');
-  await page.getByRole('group', { name: 'Quick filters' }).locator('button').nth(1).click();
+  await page.getByRole('group', { name: 'Quick filters' }).locator('button').nth(5).click();
   await page.waitForFunction((n) => document.querySelectorAll('[data-face]').length === n, facesBefore);
   console.log(`  quick filter "${qfLabel}": ${facesBefore} -> ${facesFiltered} faces, then back`);
+  // The FILTERS panel: age, distance, who to show, map-only filters, must-match answers.
+  await page.getByRole('button', { name: 'All filters' }).click();
+  const panel = page.getByRole('dialog', { name: 'Filters' });
+  await panel.getByRole('button', { name: /80%\+ matches/ }).click();
+  await shot('discover-filter-panel');
+  await panel.getByRole('button', { name: 'APPLY' }).click();
+  await panel.waitFor({ state: 'detached' });
+  const strong = await page.locator('[data-face]').count();
+  for (const f of await page.locator('[data-face]').all()) {
+    const pct = Number((await f.getAttribute('aria-label')).match(/(\d+)% match/)[1]);
+    if (pct < 80) throw new Error(`80%+ filter let through a ${pct}% match`);
+  }
+  await page.getByRole('group', { name: 'Quick filters' }).getByRole('button', { name: /80%\+/ }).click();
+  await page.waitForFunction((n) => document.querySelectorAll('[data-face]').length === n, facesBefore);
+  console.log(`  80%+ filter: ${facesBefore} -> ${strong} faces, then back`);
   const zoomBefore = await map.locator('text=/^x\\d/').textContent();
   await map.hover();
   await page.mouse.wheel(0, -400);

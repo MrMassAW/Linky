@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { FeedExplainer } from '../components/FeedExplainer';
 import { LikeSheet } from '../components/LikeSheet';
-import { QuickFilters } from '../components/QuickFilters';
+import { NO_VIEW_FILTERS, QuickFilters, STRONG_MATCH, type ViewFilters } from '../components/QuickFilters';
 import { ProfileCard, type LikeTarget } from '../components/ProfileCard';
 import { SafetySheet } from '../components/SafetySheet';
 import { QuickCard, SpaceMap } from '../components/SpaceMap';
@@ -13,6 +13,16 @@ import type { FeedItem } from '../lib/types';
 
 type Mode = 'space' | 'list';
 const MODE_KEY = 'linky-discover-mode';
+
+const VIEW_KEY = 'linky-discover-filters';
+
+function savedView(): ViewFilters {
+  try {
+    return { ...NO_VIEW_FILTERS, ...JSON.parse(localStorage.getItem(VIEW_KEY) ?? '{}') };
+  } catch {
+    return NO_VIEW_FILTERS;
+  }
+}
 
 function savedMode(): Mode {
   try {
@@ -29,6 +39,7 @@ export default function Discover() {
   const nav = useNavigate();
   const feed = useLoader(() => backend.getFeed(), [backend]);
   const [mode, setModeState] = useState<Mode>(savedMode);
+  const [view, setViewState] = useState<ViewFilters>(savedView);
   // People you liked or blocked leave the map; people you passed on stay, faded, for a day.
   const [done, setDone] = useState<Set<string>>(() => new Set());
   const [passedNow, setPassedNow] = useState<Record<string, string>>({});
@@ -55,12 +66,28 @@ export default function Discover() {
     }
   };
 
+  const setView = (v: ViewFilters) => {
+    setViewState(v);
+    setPickId(null);
+    try {
+      localStorage.setItem(VIEW_KEY, JSON.stringify(v));
+    } catch {
+      /* not remembered */
+    }
+  };
+
   const items: FeedItem[] = useMemo(
     () =>
       (feed.data ?? [])
         .filter((i) => !done.has(i.profile.id))
-        .map((i) => (passedNow[i.profile.id] ? { ...i, passed_at: passedNow[i.profile.id] } : i)),
-    [feed.data, done, passedNow],
+        .map((i) => (passedNow[i.profile.id] ? { ...i, passed_at: passedNow[i.profile.id] } : i))
+        .filter(
+          (i) =>
+            (!view.verified || i.profile.verified) &&
+            (!view.strong || i.compatibility.total >= STRONG_MATCH) &&
+            (!view.hidePassed || !i.passed_at),
+        ),
+    [feed.data, done, passedNow, view],
   );
   const shared = useMemo(
     () => Object.fromEntries((feed.data ?? []).map((i) => [i.profile.id, sharedThings(me, i.profile)])),
@@ -140,6 +167,18 @@ export default function Discover() {
 
   if (feed.loading) return <FullPageSpinner />;
 
+  const filters = (
+    <QuickFilters
+      view={view}
+      onView={setView}
+      onChanged={async () => {
+        setPickId(null);
+        setOpenId(null);
+        feed.setData(await backend.getFeed());
+      }}
+    />
+  );
+
   return (
     <div className="px-4">
       <header className="flex items-center justify-between py-3">
@@ -164,20 +203,16 @@ export default function Discover() {
         </div>
       </header>
 
-      <QuickFilters
-        onChanged={async () => {
-          setPickId(null);
-          setOpenId(null);
-          feed.setData(await backend.getFeed());
-        }}
-      />
-
       {me.paused && (
         <div className="mb-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Your profile is paused, so nobody can see you. <Link to="/me/settings" className="font-semibold underline">Unpause</Link>
         </div>
       )}
       <ErrorText>{feed.error ?? error}</ErrorText>
+
+      {(mode === 'list' || items.length === 0) && (
+        <div className="relative z-20 mb-3 h-[52px] rounded-2xl bg-[#0c0720] font-retro text-[#f1e8ff]">{filters}</div>
+      )}
 
       {(mode === 'space' ? items.length === 0 : queue.length === 0) ? (
         <Empty icon="🌙" title="You’re all caught up">
@@ -189,8 +224,8 @@ export default function Discover() {
           <FeedExplainer key={done.size + Object.keys(passedNow).length} />
         </Empty>
       ) : mode === 'space' ? (
-        <div className="h-[calc(100dvh-13rem)] min-h-[440px]">
-          <SpaceMap items={items} shared={shared} myPhoto={me.photos[0]?.url} pickedId={pickId} onPick={setPickId}>
+        <div className="h-[calc(100dvh-10.5rem)] min-h-[440px]">
+          <SpaceMap items={items} shared={shared} myPhoto={me.photos[0]?.url} pickedId={pickId} onPick={setPickId} toolbar={filters}>
             {picked && !opened && (
               <QuickCard
                 key={picked.profile.id}

@@ -104,6 +104,7 @@ export function SpaceMap({
   myPhoto,
   pickedId,
   onPick,
+  toolbar,
   children,
 }: {
   items: FeedItem[];
@@ -112,6 +113,8 @@ export function SpaceMap({
   myPhoto?: string;
   pickedId: string | null;
   onPick: (id: string | null) => void;
+  /** Drawn across the top of the sky (the filters). */
+  toolbar?: ReactNode;
   children?: ReactNode;
 }) {
   // Stars you've tapped; faces light up when they share every one of them.
@@ -503,7 +506,7 @@ export function SpaceMap({
         );
       })}
 
-      <div className="absolute right-3 top-3 z-10 flex flex-col items-center gap-2.5">
+      <div className="absolute right-3 top-16 z-10 flex flex-col items-center gap-2.5">
         <ZoomButton label="Zoom in" onClick={() => zoomAt(1.4, size.w / 2, size.h / 2)}>+</ZoomButton>
         <span className="font-pixel text-[8px] text-[#9d8fc0]">x{z.toFixed(1)}</span>
         <ZoomButton label="Zoom out" onClick={() => zoomAt(1 / 1.4, size.w / 2, size.h / 2)}>-</ZoomButton>
@@ -527,6 +530,7 @@ export function SpaceMap({
         </p>
       )}
 
+      {toolbar}
       {children}
     </div>
   );
