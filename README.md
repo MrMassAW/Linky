@@ -25,7 +25,7 @@ Settings → **Demo tools** lets you turn on admin mode (report queue), reset da
 | --- | --- |
 | Sign up (email / Google / Apple, 18+ gate), liveness check, full profile with compressed photos | `screens/Welcome`, `screens/onboarding`, `components/editors/*` |
 | Both quizzes with results | `components/editors/PersonalityQuiz`, `LoveQuiz`, `quiz/scoring.ts` |
-| Discover feed of ~70 seeded profiles with compatibility scores | `screens/Discover`, `shared/matching` |
+| Discover as a pixel space map (you at the center, faces orbit by compatibility; pinch/swipe, quick card, Open for the full profile; passes fade for a day) plus a list view, over ~70 seeded profiles | `screens/Discover`, `components/SpaceMap`, `shared/matching` |
 | Like a photo/prompt with a comment → match → async note → mutual Connect → WhatsApp/Telegram | `screens/LikesYou`, `screens/Matches`, `screens/MatchDetail` |
 | Filters and visibility toggles, including the opt-in kink section | `screens/Filters`, `components/editors/LifestyleForm`, `KinksForm` |
 | Report/block shows up in the admin queue | `components/SafetySheet`, `screens/Admin` |

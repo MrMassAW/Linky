@@ -103,6 +103,8 @@ export const NOTE_MAX = 500;
 export const LIKE_COMMENT_MAX = 200;
 export const DAILY_LIKES = 10;
 export const DAILY_NOTES = 20;
+/** How long someone you passed on stays on the space map, faded, before disappearing. */
+export const PASS_VISIBLE_MS = 24 * 60 * 60 * 1000;
 
 let instance: Promise<Backend> | null = null;
 

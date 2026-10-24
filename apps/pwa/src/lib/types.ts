@@ -124,6 +124,8 @@ export interface PublicProfile {
 export interface FeedItem {
   profile: PublicProfile;
   compatibility: CompatibilityBreakdown;
+  /** Set when you passed on this person less than a day ago: Discover shows them faded until it expires. */
+  passed_at?: string | null;
 }
 
 export type LikeTargetType = 'photo' | 'prompt';

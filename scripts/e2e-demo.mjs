@@ -15,6 +15,7 @@ const browser = await chromium.launch({
 });
 const ctx = await browser.newContext({
   viewport: { width: 390, height: 844 },
+  hasTouch: true,
   deviceScaleFactor: 2,
   permissions: ['geolocation', 'camera'],
   geolocation: { latitude: 45.5231, longitude: -73.5817 },
@@ -147,7 +148,53 @@ try {
   await click('Continue');
   await click('Start discovering');
 
-  step('discover feed with compatibility');
+  step('discover space map: zoom, quick card, pass fades, open full card');
+  const map = page.getByTestId('space-map');
+  await map.waitFor();
+  await page.locator('[data-face]').first().waitFor();
+  await shot('discover-space');
+  const zoomBefore = await map.locator('text=/^x\\d/').textContent();
+  await map.hover();
+  await page.mouse.wheel(0, -400);
+  await page.waitForFunction((b) => {
+    const label = [...document.querySelectorAll('[data-testid=space-map] span')].find((el) => /^x\d/.test(el.textContent ?? ''));
+    return label && label.textContent !== b;
+  }, zoomBefore);
+  await click('FIT');
+
+  // Real touch input: a two-finger pinch zooms in, a one-finger swipe pans.
+  const zoomLabel = () => map.locator('text=/^x\\d/').textContent();
+  const cdp = await ctx.newCDPSession(page);
+  const mb = await map.boundingBox();
+  const mx = mb.x + mb.width / 2;
+  const my = mb.y + mb.height / 2;
+  const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], id) => ({ x, y, id })) });
+  const fitLabel = await zoomLabel();
+  await touch('touchStart', [[mx - 30, my], [mx + 30, my]]);
+  for (let k = 1; k <= 8; k++) await touch('touchMove', [[mx - 30 - k * 12, my], [mx + 30 + k * 12, my]]);
+  await touch('touchEnd', []);
+  const pinched = await zoomLabel();
+  if (parseFloat(pinched.slice(1)) <= parseFloat(fitLabel.slice(1))) throw new Error(`pinch did not zoom in (${fitLabel} -> ${pinched})`);
+  const face = page.locator('[data-face]').first();
+  const before = await face.boundingBox();
+  await touch('touchStart', [[mx, my + 150]]);
+  for (let k = 1; k <= 6; k++) await touch('touchMove', [[mx + k * 15, my + 150]]);
+  await touch('touchEnd', []);
+  await page.waitForTimeout(400);
+  const after = await face.boundingBox();
+  if (after.x - before.x < 80) throw new Error(`swipe did not pan (${before.x} -> ${after.x})`);
+  console.log(`  pinch ${fitLabel} -> ${pinched}, swipe moved ${Math.round(after.x - before.x)}px`);
+  await click('FIT');
+  const openFirst = async () => {
+    await page.locator('[data-face]:not([aria-label$="passed"])').first().dispatchEvent('click');
+    await page.locator('section[aria-label$="quick look"]').waitFor();
+  };
+  await openFirst();
+  await shot('quick-card');
+  await page.getByRole('button', { name: /^Pass on / }).click();
+  await page.locator('[data-face][aria-label$="passed"]').first().waitFor();
+  await openFirst();
+  await page.getByRole('button', { name: /^Open .*'s profile/ }).click();
   await page.getByText('compatible').first().waitFor();
   const firstScore = await page.locator('text=/^\\d+%$/').first().textContent();
   console.log(`  first profile compatibility: ${firstScore}`);
@@ -156,6 +203,10 @@ try {
   step('like a prompt with a comment until matched');
   let matched = false;
   for (let i = 0; i < 10 && !matched; i++) {
+    if (i > 0) {
+      await openFirst();
+      await page.getByRole('button', { name: /^Open .*'s profile/ }).click();
+    }
     await page.getByRole('button', { name: /Like .*'s prompt/ }).first().click();
     await page.getByLabel('Comment').fill('This made me smile!');
     if (i === 0) await shot('like-sheet');
@@ -198,6 +249,8 @@ try {
 
   step('report + block from discover');
   await page.goto(`${BASE}/discover`);
+  await openFirst();
+  await page.getByRole('button', { name: /^Open .*'s profile/ }).click();
   await page.getByText(/Report or block/).click();
   await page.getByText('Spam or scam').click();
   await click('Send report');

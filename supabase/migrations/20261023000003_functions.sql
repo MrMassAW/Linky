@@ -165,7 +165,8 @@ language sql stable security definer set search_path = public, extensions as $$
     )
     and not public.is_blocked(me.id, c.id)
     and not exists (select 1 from likes l where l.from_id = me.id and l.to_id = c.id)
-    and not exists (select 1 from skips s where s.from_id = me.id and s.to_id = c.id)
+    -- a pass stays visible (faded) on the space map for a day
+    and not exists (select 1 from skips s where s.from_id = me.id and s.to_id = c.id and s.created_at <= now() - interval '1 day')
     and public.match_between(me.id, c.id) is null
   order by c.last_active_at desc
   limit p_limit;
@@ -179,7 +180,9 @@ create or replace function public.get_feed(p_limit int default 20) returns jsonb
 language sql stable security definer set search_path = public as $$
   select coalesce(jsonb_agg(jsonb_build_object(
       'profile', public.public_profile_json(f.viewer_id, f.candidate_id),
-      'compatibility', f.breakdown) order by f.rank desc), '[]'::jsonb)
+      'compatibility', f.breakdown,
+      'passed_at', (select s.created_at from skips s where s.from_id = f.viewer_id and s.to_id = f.candidate_id)
+    ) order by f.rank desc), '[]'::jsonb)
   from (
     select f.* from feed_cache f
     join profiles c on c.id = f.candidate_id
@@ -187,7 +190,7 @@ language sql stable security definer set search_path = public as $$
       and not c.paused and not c.banned
       and not public.is_blocked(f.viewer_id, f.candidate_id)
       and not exists (select 1 from likes l where l.from_id = f.viewer_id and l.to_id = f.candidate_id)
-      and not exists (select 1 from skips s where s.from_id = f.viewer_id and s.to_id = f.candidate_id)
+      and not exists (select 1 from skips s where s.from_id = f.viewer_id and s.to_id = f.candidate_id and s.created_at <= now() - interval '1 day')
       and public.match_between(f.viewer_id, f.candidate_id) is null
     order by f.rank desc
     limit p_limit
@@ -352,7 +355,9 @@ begin
   if not found then return; end if;
   other := case when m.user_a = uid then m.user_b else m.user_a end;
   delete from likes where (from_id = uid and to_id = other) or (from_id = other and to_id = uid);
-  insert into skips (from_id, to_id) values (uid, other), (other, uid) on conflict do nothing;
+  -- backdated so an unmatched person never reappears as a faded pass
+  insert into skips (from_id, to_id, created_at) values (uid, other, '-infinity'), (other, uid, '-infinity')
+  on conflict (from_id, to_id) do update set created_at = '-infinity';
 end $$;
 
 -- ---------------------------------------------------------------------------

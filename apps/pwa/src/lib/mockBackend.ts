@@ -25,6 +25,7 @@ import {
 import {
   DAILY_LIKES,
   DAILY_NOTES,
+  PASS_VISIBLE_MS,
   type Backend,
   type DemoTools,
   type SessionUser,
@@ -107,7 +108,8 @@ interface MockDB {
   session: string | null;
   profiles: Record<string, StoredProfile>;
   likes: Like[];
-  skips: { from_id: string; to_id: string }[];
+  /** created_at is set for passes from Discover; those stay visible (faded) for a day. */
+  skips: { from_id: string; to_id: string; created_at?: string }[];
   matches: Match[];
   notes: Note[];
   blocks: { blocker_id: string; blocked_id: string }[];
@@ -515,9 +517,15 @@ export class MockBackend implements Backend, DemoTools {
   async getFeed(): Promise<FeedItem[]> {
     const db = await this.load();
     const me = this.resolved(db, this.me(db));
+    const passedSince = Date.now() - PASS_VISIBLE_MS;
+    const recentPasses = new Map(
+      db.skips
+        .filter((s) => s.from_id === me.id && s.created_at && Date.parse(s.created_at) > passedSince)
+        .map((s) => [s.to_id, s.created_at!]),
+    );
     const acted = new Set([
       ...db.likes.filter((l) => l.from_id === me.id).map((l) => l.to_id),
-      ...db.skips.filter((s) => s.from_id === me.id).map((s) => s.to_id),
+      ...db.skips.filter((s) => s.from_id === me.id && !recentPasses.has(s.to_id)).map((s) => s.to_id),
     ]);
     const candidates = Object.values(db.profiles)
       .filter(
@@ -535,6 +543,7 @@ export class MockBackend implements Backend, DemoTools {
     return buildFeed(toMatchable(me), candidates.map(toMatchable)).map((r) => ({
       profile: this.view(db, byId.get(r.profile.id)!),
       compatibility: r.compatibility,
+      passed_at: recentPasses.get(r.profile.id) ?? null,
     }));
   }
 
@@ -594,7 +603,7 @@ export class MockBackend implements Backend, DemoTools {
 
   async skip(toId: string) {
     await this.mutate((db) => {
-      db.skips.push({ from_id: this.me(db).id, to_id: toId });
+      db.skips.push({ from_id: this.me(db).id, to_id: toId, created_at: new Date().toISOString() });
     });
   }
 

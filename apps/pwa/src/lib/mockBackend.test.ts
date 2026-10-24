@@ -76,6 +76,24 @@ describe('MockBackend demo flow', () => {
     expect(await b.likesRemaining()).toBe(10);
   });
 
+  it('a pass stays in the feed, marked, for a day and then drops out', async () => {
+    const b = new MockBackend();
+    await b.resetDemo();
+    await onboard(b);
+    const [first] = await b.getFeed();
+    expect(first.passed_at ?? null).toBeNull();
+    await b.skip(first.profile.id);
+    const again = (await b.getFeed()).find((f) => f.profile.id === first.profile.id);
+    expect(again?.passed_at).toBeTruthy();
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(Date.now() + 25 * 60 * 60 * 1000);
+    try {
+      expect((await b.getFeed()).some((f) => f.profile.id === first.profile.id)).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('report and block show up in the admin queue and hide the profile', async () => {
     const b = new MockBackend();
     await b.resetDemo();
