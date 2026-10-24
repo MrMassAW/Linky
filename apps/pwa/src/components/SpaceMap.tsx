@@ -52,27 +52,18 @@ function layoutConstellation(items: FeedItem[], shared: Record<string, SharedThi
     const TAU = Math.PI * 2;
     return { it, angle: ((angle % TAU) + TAU) % TAU, hubs: idx, shared: mine };
   });
-  // Spread faces around the circle so people pulled toward the same star don't pile up:
-  // neighbours closer than minGap push each other apart, keeping their order.
+  // Spread faces evenly around the circle: keep everyone in the order of the direction they
+  // lean (toward their stars), then give each the next of n equal slots, turning the whole ring
+  // so slots sit as close as possible to where people lean.
   const n = nodes.length;
   if (n > 1) {
-    const minGap = Math.min(0.32, (0.9 * Math.PI * 2) / n);
+    const TAU = Math.PI * 2;
+    const step = TAU / n;
     const ring = [...nodes].sort((a, b) => a.angle - b.angle);
-    for (let pass = 0; pass < 40; pass++) {
-      let moved = false;
-      for (let k = 0; k < n; k++) {
-        const a = ring[k];
-        const b = ring[(k + 1) % n];
-        const gap = k === n - 1 ? b.angle + Math.PI * 2 - a.angle : b.angle - a.angle;
-        if (gap < minGap - 1e-3) {
-          const push = (minGap - gap) / 2;
-          a.angle -= push;
-          b.angle += push;
-          moved = true;
-        }
-      }
-      if (!moved) break;
-    }
+    const ox = ring.reduce((sum, nd, k) => sum + Math.cos(nd.angle - k * step), 0);
+    const oy = ring.reduce((sum, nd, k) => sum + Math.sin(nd.angle - k * step), 0);
+    const offset = Math.atan2(oy, ox);
+    ring.forEach((nd, k) => (nd.angle = offset + k * step));
   }
   return { hubs, hubAngle, nodes };
 }
