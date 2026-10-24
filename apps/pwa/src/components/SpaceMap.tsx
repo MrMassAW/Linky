@@ -68,6 +68,7 @@ export function SpaceMap({
   const fling = useRef(0);
   const [time, setTime] = useState(0);
   const [shooting, setShooting] = useState<{ id: number; left: string; top: string; angle: number } | null>(null);
+  const [ufo, setUfo] = useState<{ id: number; top: string; rtl: boolean } | null>(null);
   const still = useRef(false);
   still.current = Boolean(pickedId);
 
@@ -96,11 +97,36 @@ export function SpaceMap({
     const schedule = () => {
       timer = window.setTimeout(() => {
         n += 1;
-        setShooting({ id: n, left: `${35 + Math.random() * 60}%`, top: `${Math.random() * 45}%`, angle: 20 + Math.random() * 25 });
+        // Any heading; start on the far side of the view so the streak crosses it.
+        const angle = Math.random() * 360;
+        const rad = (angle * Math.PI) / 180;
+        const side = (Math.random() - 0.5) * 50;
+        setShooting({
+          id: n,
+          left: `${50 - Math.cos(rad) * 40 - Math.sin(rad) * side}%`,
+          top: `${50 - Math.sin(rad) * 40 + Math.cos(rad) * side}%`,
+          angle,
+        });
         schedule();
       }, 5000 + Math.random() * 9000);
     };
     schedule();
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Rarely, a little UFO wanders across.
+  useEffect(() => {
+    if (reducedMotion()) return;
+    let timer = 0;
+    let n = 0;
+    const schedule = (wait: number) => {
+      timer = window.setTimeout(() => {
+        n += 1;
+        setUfo({ id: n, top: `${12 + Math.random() * 60}%`, rtl: Math.random() < 0.5 });
+        schedule(25000 + Math.random() * 35000);
+      }, wait);
+    };
+    schedule(8000 + Math.random() * 10000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -282,9 +308,29 @@ export function SpaceMap({
           key={shooting.id}
           aria-hidden="true"
           className="pointer-events-none absolute"
-          style={{ left: shooting.left, top: shooting.top, transform: `rotate(${180 - shooting.angle}deg)` }}
+          style={{ left: shooting.left, top: shooting.top, transform: `rotate(${shooting.angle}deg)`, transformOrigin: '0 0' }}
         >
           <div className="animate-shoot h-[3px] w-24 bg-[linear-gradient(270deg,#fff_0_12px,rgba(255,228,154,0.8)_12px_40px,rgba(255,228,154,0)_100%)]" onAnimationEnd={() => setShooting(null)} />
+        </div>
+      )}
+
+      {ufo && (
+        <div
+          key={ufo.id}
+          aria-hidden="true"
+          data-testid="ufo"
+          className={`pointer-events-none absolute ${ufo.rtl ? 'animate-ufo-rtl' : 'animate-ufo-ltr'}`}
+          style={{ top: ufo.top }}
+          onAnimationEnd={() => setUfo(null)}
+        >
+          <svg width="44" height="24" viewBox="0 0 22 12" shape-rendering="crispEdges" className="animate-ufo-bob">
+            <path fill="#b8e0ff" d="M8 1h6v1h1v2H7V2h1z" />
+            <path fill="#e8f6ff" d="M9 2h2v1H9z" />
+            <path fill="#8e9bb5" d="M5 4h12v1h2v1h1v2h-1v1H3V8H2V6h1V5h2z" />
+            <path fill="#5f6b85" d="M3 8h16v1H3z" />
+            <path className="animate-ufo-blink" fill="#ffe49a" d="M5 6h2v1H5zm5 0h2v1h-2zm5 0h2v1h-2z" />
+            <path fill="#9be3cf" fillOpacity="0.4" d="M8 9h6v1h1v1h1v1H6v-1h1v-1h1z" />
+          </svg>
         </div>
       )}
 
