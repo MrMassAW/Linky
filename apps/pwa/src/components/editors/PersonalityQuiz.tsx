@@ -64,7 +64,7 @@ export function PersonalityQuiz({ onDone, cta = 'Continue' }: { onDone: () => vo
               key={t}
               disabled={busy}
               onClick={() => persist({ type: t, ...scoresFromType(t as PersonalityType), visible: true, self_reported: true })}
-              className="rounded-2xl border border-plum-100 bg-white px-3 py-2.5 text-left transition hover:border-coral-300 active:scale-[0.98]"
+              className="rounded-2xl border border-plum-100 bg-surface px-3 py-2.5 text-left transition hover:border-coral-300 active:scale-[0.98]"
             >
               <span className="block font-display text-lg font-semibold text-coral-500">{t}</span>
               <span className="block text-xs text-plum-700">{TYPE_NICKNAMES[t]}</span>
@@ -97,7 +97,7 @@ export function PersonalityQuiz({ onDone, cta = 'Continue' }: { onDone: () => vo
               key={label}
               onClick={() => answer(idx + 1)}
               className={`w-full rounded-2xl border px-4 py-3 text-left text-[15px] font-medium transition ${
-                answers[q.id] === idx + 1 ? 'border-coral-500 bg-coral-50 text-coral-600' : 'border-plum-100 bg-white hover:border-coral-200'
+                answers[q.id] === idx + 1 ? 'border-coral-500 bg-coral-50 text-coral-600' : 'border-plum-100 bg-surface hover:border-coral-200'
               }`}
             >
               {label}
@@ -163,7 +163,7 @@ export function PersonalityResult({ p, compact }: { p: Pick<Personality, 'type' 
               <div className="relative mt-1 flex h-2.5 gap-0.5 overflow-hidden rounded-full" role="img" aria-label={`${left} ${v}%, ${right} ${100 - v}%`}>
                 {v > 0 && <div className="rounded-l-full bg-coral-400" style={{ width: `${v}%` }} />}
                 {v < 100 && <div className="flex-1 rounded-r-full bg-plum-500" />}
-                <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-white/80" />
+                <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-surface/80" />
               </div>
             </div>
           );

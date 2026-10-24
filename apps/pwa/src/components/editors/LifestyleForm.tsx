@@ -86,7 +86,7 @@ export function LifestyleForm({
 export function PreferenceFields({ prefs, onChange }: { prefs: Preferences; onChange: (p: Preferences) => void }) {
   const anywhere = prefs.distance_km === null;
   return (
-    <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-plum-100/60">
+    <section className="rounded-3xl bg-surface p-4 shadow-sm ring-1 ring-plum-100/60">
       <h3 className="text-lg font-semibold">Who I’m looking for</h3>
       <div className="mt-3">
         <label>
@@ -139,7 +139,7 @@ function AttributeField({
     onChange({ value: values.includes(v) ? null : v });
   };
   return (
-    <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-plum-100/60">
+    <section className="rounded-3xl bg-surface p-4 shadow-sm ring-1 ring-plum-100/60">
       <h3 className="text-base font-semibold">
         {ATTRIBUTE_LABELS[k]} {optional && <span className="text-xs font-normal text-muted">(optional)</span>}
         {multi && <span className="text-xs font-normal text-muted"> (pick all that apply)</span>}
@@ -194,7 +194,7 @@ function MultiField({
   const value = Array.isArray(s.value) ? s.value : [];
   const toggle = (o: string) => onChange({ value: value.includes(o) ? value.filter((x) => x !== o) : [...value, o] });
   return (
-    <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-plum-100/60">
+    <section className="rounded-3xl bg-surface p-4 shadow-sm ring-1 ring-plum-100/60">
       <h3 className="text-base font-semibold">{ATTRIBUTE_LABELS[k]}</h3>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {options.map((o) => (

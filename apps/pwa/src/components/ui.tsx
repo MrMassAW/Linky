@@ -6,9 +6,9 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-coral-500 text-white shadow-sm shadow-coral-200 hover:bg-coral-600 disabled:bg-coral-200',
-  secondary: 'bg-white text-plum-700 border border-plum-100 hover:bg-plum-50 disabled:text-plum-100',
+  secondary: 'bg-surface text-plum-700 border border-plum-100 hover:bg-plum-50 disabled:text-plum-100',
   ghost: 'text-plum-700 hover:bg-plum-50 disabled:text-plum-100',
-  danger: 'bg-white text-coral-600 border border-coral-200 hover:bg-coral-50',
+  danger: 'bg-surface text-coral-600 border border-coral-200 hover:bg-coral-50',
 };
 
 export function Button({
@@ -104,7 +104,7 @@ export function FullPageSpinner() {
 }
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-3xl bg-white p-5 shadow-sm ring-1 ring-plum-100/60 ${className}`}>{children}</div>;
+  return <div className={`rounded-3xl bg-surface p-5 shadow-sm ring-1 ring-plum-100/60 ${className}`}>{children}</div>;
 }
 
 export function Toggle({
@@ -135,7 +135,7 @@ export function Toggle({
         className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition ${checked ? 'bg-coral-500' : 'bg-plum-100'}`}
       >
         <span
-          className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition ${checked ? 'left-[22px]' : 'left-0.5'}`}
+          className={`absolute top-0.5 h-6 w-6 rounded-full bg-surface shadow transition ${checked ? 'left-[22px]' : 'left-0.5'}`}
         />
       </button>
     </label>
@@ -161,7 +161,7 @@ export function Chip({
       className={`rounded-full border transition ${small ? 'px-3 py-1 text-xs' : 'px-4 py-2 text-sm'} font-medium ${
         selected
           ? 'border-coral-500 bg-coral-500 text-white'
-          : 'border-plum-100 bg-white text-plum-700 hover:border-coral-200'
+          : 'border-plum-100 bg-surface text-plum-700 hover:border-coral-200'
       }`}
     >
       {children}
@@ -200,7 +200,7 @@ export function Sheet({
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal="true">
       <div className="animate-fade-in absolute inset-0 bg-plum-900/40" onClick={onClose} />
-      <div className="animate-slide-up relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-5 pb-8 sm:rounded-3xl">
+      <div className="animate-slide-up relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-surface p-5 pb-8 sm:rounded-3xl">
         <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-plum-100 sm:hidden" />
         {title && <h2 className="mb-3 text-xl font-semibold">{title}</h2>}
         {children}
@@ -293,9 +293,9 @@ export function XIcon({ className = 'h-6 w-6' }: { className?: string }) {
 
 export function Logo({ className = '' }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 font-display text-3xl font-semibold text-coral-500 ${className}`}>
-      <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" className="h-9 w-9" />
-      linky
+    <span className={`inline-flex items-center gap-2 font-display text-3xl font-semibold ${className}`}>
+      <img src={`${import.meta.env.BASE_URL}logo-mark.png`} alt="" className="h-7 w-auto" />
+      <span className="bg-gradient-to-r from-aqua-500 via-coral-500 to-orchid-500 bg-clip-text pb-1 text-transparent">linky</span>
     </span>
   );
 }

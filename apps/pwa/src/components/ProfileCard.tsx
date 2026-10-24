@@ -28,7 +28,7 @@ export function CompatBadge({ c, large }: { c: CompatibilityBreakdown; large?: b
     ['Shared', c.shared],
   ].filter(([, v]) => v !== null) as [string, number][];
   return (
-    <div className={`rounded-3xl bg-gradient-to-br from-coral-500 to-plum-500 text-white ${large ? 'p-5' : 'p-4'}`}>
+    <div className={`rounded-3xl bg-gradient-to-br from-aqua-500 via-coral-500 to-orchid-500 text-white ${large ? 'p-5' : 'p-4'}`}>
       <div className="flex items-baseline gap-2">
         <span className="font-display text-4xl font-semibold">{c.total}%</span>
         <span className="text-sm opacity-90">compatible</span>
@@ -81,7 +81,7 @@ export function ProfileCard({
     const pr = prompts[i];
     if (!pr) return null;
     return (
-      <div key={pr.id} className="relative rounded-3xl bg-white px-5 pb-14 pt-5 shadow-sm ring-1 ring-plum-100/60">
+      <div key={pr.id} className="relative rounded-3xl bg-surface px-5 pb-14 pt-5 shadow-sm ring-1 ring-plum-100/60">
         <p className="text-sm font-semibold text-plum-700">{pr.prompt}</p>
         <p className="mt-2 font-display text-[22px] leading-snug text-ink">{pr.answer}</p>
         {onLike && (
@@ -100,7 +100,7 @@ export function ProfileCard({
   const languages = (p.attributes.languages as string[] | undefined) ?? [];
 
   const facts = (
-    <div key="facts" className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-plum-100/60">
+    <div key="facts" className="rounded-3xl bg-surface p-5 shadow-sm ring-1 ring-plum-100/60">
       <div className="flex flex-wrap gap-1.5">
         {p.gender && <Tag>{p.gender}</Tag>}
         {p.pronouns && <Tag>{p.pronouns}</Tag>}
@@ -180,7 +180,7 @@ export function ProfileCard({
       {compat && <CompatBadge c={compat} />}
       {blocks}
       {p.kinks && p.kinks.length > 0 && (
-        <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-plum-100/60">
+        <div className="rounded-3xl bg-surface p-5 shadow-sm ring-1 ring-plum-100/60">
           <p className="text-xs font-semibold uppercase tracking-wide text-plum-500">Into (18+)</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {p.kinks.map((k) => (
@@ -200,7 +200,7 @@ function LikeButton({ onClick, active, label }: { onClick: () => void; active?: 
       onClick={onClick}
       aria-label={label}
       className={`absolute bottom-3 right-3 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition active:scale-90 ${
-        active ? 'bg-coral-500 text-white' : 'bg-white text-coral-500'
+        active ? 'bg-coral-500 text-white' : 'bg-surface text-coral-500'
       }`}
     >
       <HeartIcon filled={active} className="h-6 w-6" />

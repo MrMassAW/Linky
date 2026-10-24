@@ -44,7 +44,7 @@ export default function LikesYou() {
           </Empty>
         )}
         {likes.data?.map((l) => (
-          <div key={l.like.id} className="animate-fade-in overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-plum-100/60">
+          <div key={l.like.id} className="animate-fade-in overflow-hidden rounded-3xl bg-surface shadow-sm ring-1 ring-plum-100/60">
             <Link to={`/u/${l.profile.id}`} className="flex items-center gap-3 p-4">
               <img src={l.profile.photos[0]?.url} alt="" className="h-16 w-16 rounded-2xl object-cover" />
               <div className="min-w-0 flex-1">
@@ -66,7 +66,7 @@ export default function LikesYou() {
                   <p className="font-display text-base">{l.target?.answer}</p>
                 </>
               )}
-              {l.like.comment && <p className="mt-2 rounded-xl bg-white px-3 py-2 text-sm">“{l.like.comment}”</p>}
+              {l.like.comment && <p className="mt-2 rounded-xl bg-surface px-3 py-2 text-sm">“{l.like.comment}”</p>}
             </div>
             <div className="flex gap-2 p-4">
               <Button variant="secondary" className="flex-1" onClick={() => pass(l)}>

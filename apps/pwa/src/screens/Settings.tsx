@@ -163,7 +163,7 @@ export default function Settings() {
         >
           Sign out
         </Button>
-        <details className="rounded-2xl bg-white px-4 py-3 text-xs text-muted">
+        <details className="rounded-2xl bg-surface px-4 py-3 text-xs text-muted">
           <summary className="cursor-pointer text-sm font-semibold text-plum-700">Credits and licenses</summary>
           <ul className="mt-2 list-disc space-y-1 pl-4">
             <li>

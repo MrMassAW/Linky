@@ -63,20 +63,20 @@ export default defineConfig({
     VitePWA({
       disable: STATIC,
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.png', 'logo-mark.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'Linky',
         short_name: 'Linky',
         description: 'Real connections between verified humans.',
-        theme_color: '#e8505b',
-        background_color: '#fff7f3',
+        theme_color: '#7c6ae6',
+        background_color: '#f6f7fc',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {

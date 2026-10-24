@@ -69,7 +69,7 @@ export function CitySearch({
         }}
       />
       {show && (
-        <ul id={listId} role="listbox" className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-auto rounded-2xl bg-white py-1 shadow-lg ring-1 ring-plum-100">
+        <ul id={listId} role="listbox" className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-auto rounded-2xl bg-surface py-1 shadow-lg ring-1 ring-plum-100">
           {results.map((p, i) => (
             <li
               key={`${p.label}-${i}`}

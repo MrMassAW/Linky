@@ -129,7 +129,7 @@ export default function Discover() {
         <button
           onClick={() => void skip(it)}
           aria-label={`Skip ${it.profile.name}`}
-          className="fixed bottom-24 left-[max(1rem,calc(50%-12rem))] z-20 flex h-14 w-14 items-center justify-center rounded-full bg-white text-plum-700 shadow-xl ring-1 ring-plum-100 active:scale-90"
+          className="fixed bottom-24 left-[max(1rem,calc(50%-12rem))] z-20 flex h-14 w-14 items-center justify-center rounded-full bg-surface text-plum-700 shadow-xl ring-1 ring-plum-100 active:scale-90"
         >
           <XIcon />
         </button>
@@ -183,7 +183,7 @@ export default function Discover() {
       <header className="flex items-center justify-between py-3">
         <Logo className="!text-2xl" />
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-plum-700 shadow-sm">
+          <span className="rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-plum-700 shadow-sm">
             ♥ {remaining ?? '…'}
           </span>
         </div>
@@ -258,8 +258,8 @@ export default function Discover() {
         {matched && (
           <div className="text-center">
             <div className="animate-pop mx-auto flex justify-center -space-x-6">
-              <img src={me.photos[0]?.url} alt="" className="h-24 w-24 rounded-full border-4 border-white object-cover shadow" />
-              <img src={matched.photo} alt="" className="h-24 w-24 rounded-full border-4 border-white object-cover shadow" />
+              <img src={me.photos[0]?.url} alt="" className="h-24 w-24 rounded-full border-4 border-surface object-cover shadow" />
+              <img src={matched.photo} alt="" className="h-24 w-24 rounded-full border-4 border-surface object-cover shadow" />
             </div>
             <h2 className="mt-4 text-3xl font-semibold text-coral-500">It’s a match!</h2>
             <p className="mt-1 text-muted">You and {matched.name} liked each other.</p>

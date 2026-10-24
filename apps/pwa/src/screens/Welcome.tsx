@@ -61,7 +61,7 @@ export function Welcome() {
     <div className="mx-auto flex min-h-full max-w-md flex-col px-6 pb-10 pt-16">
       <div className="flex-1">
         <Logo />
-        <h1 className="mt-10 text-4xl font-semibold leading-tight text-plum-900">
+        <h1 className="mt-10 text-4xl font-semibold leading-tight text-ink">
           Real people.
           <br />
           Real connection.
@@ -78,14 +78,14 @@ export function Welcome() {
       </div>
 
       {sent ? (
-        <div className="rounded-3xl bg-white p-6 text-center shadow-sm">
+        <div className="rounded-3xl bg-surface p-6 text-center shadow-sm">
           <div className="text-4xl">📬</div>
           <h2 className="mt-2 text-xl font-semibold">Check your inbox</h2>
           <p className="mt-1 text-sm text-muted">We sent a sign-in link to {email}.</p>
         </div>
       ) : (
         <form onSubmit={withEmail} className="mt-10 space-y-3">
-          <label className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm">
+          <label className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3 shadow-sm">
             <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} className="h-5 w-5" />
             <span className="text-sm text-ink">I confirm I am 18 or older</span>
           </label>

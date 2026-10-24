@@ -152,7 +152,7 @@ export function LivenessCheck({ onDone, cta = 'Continue' }: { onDone: () => void
     <div>
       <div className="relative mx-auto aspect-[3/4] w-full max-w-xs overflow-hidden rounded-[2rem] bg-plum-900">
         <video ref={video} playsInline muted className="h-full w-full -scale-x-100 object-cover" />
-        <div className="pointer-events-none absolute inset-6 rounded-[50%] border-4 border-white/70" />
+        <div className="pointer-events-none absolute inset-6 rounded-[50%] border-4 border-surface/70" />
         {(phase === 'loading' || phase === 'comparing') && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-plum-900/70 text-white">
             <Spinner />
@@ -171,7 +171,7 @@ export function LivenessCheck({ onDone, cta = 'Continue' }: { onDone: () => void
             {hint && <div className="text-xs text-coral-200">{hint}</div>}
             <div className="mt-2 flex justify-center gap-1.5">
               {challenges.map((c, i) => (
-                <span key={c} className={`h-2 w-8 rounded-full ${i < index ? 'bg-emerald-400' : i === index ? 'bg-white' : 'bg-white/30'}`} />
+                <span key={c} className={`h-2 w-8 rounded-full ${i < index ? 'bg-emerald-400' : i === index ? 'bg-surface' : 'bg-surface/30'}`} />
               ))}
             </div>
           </div>

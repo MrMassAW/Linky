@@ -17,7 +17,7 @@ export default function ProfileEditor() {
   };
 
   const Section = ({ id, title, children }: { id: string; title: string; children: ReactNode }) => (
-    <section className="rounded-3xl bg-white shadow-sm ring-1 ring-plum-100/60">
+    <section className="rounded-3xl bg-surface shadow-sm ring-1 ring-plum-100/60">
       <button onClick={() => setOpen(open === id ? null : id)} className="flex w-full items-center justify-between p-4 text-left">
         <span className="text-lg font-semibold">{title}</span>
         <span className="text-sm text-muted">{saved === id ? 'Saved ✓' : open === id ? '▲' : '▼'}</span>
@@ -53,7 +53,7 @@ export default function ProfileEditor() {
             Retake love-language quiz
           </Link>
         </div>
-        <Link to="/me/filters" className="block rounded-2xl bg-white p-4 text-center text-sm font-semibold text-plum-700 shadow-sm">
+        <Link to="/me/filters" className="block rounded-2xl bg-surface p-4 text-center text-sm font-semibold text-plum-700 shadow-sm">
           Lifestyle answers & visibility →
         </Link>
       </div>

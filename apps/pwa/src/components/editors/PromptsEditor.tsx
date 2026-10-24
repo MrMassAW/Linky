@@ -41,7 +41,7 @@ export function PromptsEditor({ onDone, cta = 'Continue' }: { onDone: () => void
   return (
     <div className="space-y-4">
       {items.map((it, i) => (
-        <div key={i} className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-plum-100/60">
+        <div key={i} className="rounded-3xl bg-surface p-4 shadow-sm ring-1 ring-plum-100/60">
           <button onClick={() => setPicking(i)} className="w-full text-left font-display text-lg font-semibold text-plum-700">
             {it.prompt || <span className="text-coral-500">+ Choose prompt {i + 1}</span>}
           </button>

@@ -44,7 +44,7 @@ export function MessengersForm({ onDone, cta = 'Continue' }: { onDone: () => voi
         public. This step is optional.
       </p>
       {MESSENGERS.map((m) => (
-        <div key={m.app} className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-plum-100/60">
+        <div key={m.app} className="rounded-2xl bg-surface p-3 shadow-sm ring-1 ring-plum-100/60">
           <div className="flex items-center justify-between">
             <label htmlFor={`h-${m.app}`}>{m.label}</label>
             <label className="flex items-center gap-1.5 text-xs font-normal text-muted">

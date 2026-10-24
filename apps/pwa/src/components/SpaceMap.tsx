@@ -13,9 +13,15 @@ const EY = 1.35;
 /** World-space distance beyond the ring of shared-thing stars: the stronger the match, the closer. */
 export const orbitRadius = (score: number) => (100 - Math.max(0, Math.min(100, score))) * 4.6;
 
-/** Match % bands in the app palette: deep coral 90+, coral 80s, plum 70s, muted below. */
+/** Match % bands along the logo gradient: orchid 90+, violet 80s, aqua 70s, muted below. */
 export function tierColor(score: number) {
-  return score >= 90 ? '#e8505b' : score >= 80 ? '#ff7a6b' : score >= 70 ? '#8b3a74' : '#b3a3b0';
+  return score >= 90
+    ? 'var(--color-orchid-500)'
+    : score >= 80
+      ? 'var(--color-coral-500)'
+      : score >= 70
+        ? 'var(--color-aqua-500)'
+        : 'var(--color-muted)';
 }
 
 const clampZoom = (z: number) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z));
@@ -74,7 +80,7 @@ const TWINKLES = Array.from({ length: 46 }, (_, i) => {
     left: `${-25 + h(1) * 150}%`,
     top: `${-25 + h(2) * 150}%`,
     size: h(3) < 0.75 ? 2 : 4,
-    color: ['#ffc2b8', '#ecd9e7', '#ffe1dc', '#d9b8cf'][Math.floor(h(4) * 4)],
+    color: ['var(--color-coral-200)', 'var(--color-aqua-200)', 'var(--color-orchid-200)', 'var(--color-plum-100)'][Math.floor(h(4) * 4)],
     duration: `${2.2 + h(5) * 3.5}s`,
     delay: `${-h(6) * 6}s`,
     cross: h(7) > 0.82,
@@ -338,7 +344,7 @@ export function SpaceMap({
       data-zoom={z.toFixed(2)}
       className="relative h-full touch-none select-none overflow-hidden rounded-3xl font-sans text-ink shadow-sm ring-1 ring-plum-100/60"
       style={{
-        background: `radial-gradient(ellipse at calc(50% + ${view.x}px) calc(50% + ${view.y}px), #ffffff 0%, #fff8f4 40%, #f7eff5 100%)`,
+        background: `radial-gradient(ellipse at calc(50% + ${view.x}px) calc(50% + ${view.y}px), var(--color-surface) 0%, var(--color-cream) 45%, var(--color-plum-50) 100%)`,
       }}
       // Children like the filters stop pointerdown from bubbling, so start each gesture's drag count here.
       // A primary pointer is the first finger of a new gesture, so drop anything a lost pointerup left behind.
@@ -395,7 +401,7 @@ export function SpaceMap({
           className="pointer-events-none absolute"
           style={{ left: shooting.left, top: shooting.top, transform: `rotate(${shooting.angle}deg)`, transformOrigin: '0 0' }}
         >
-          <div className="animate-shoot h-[2px] w-24 rounded-full bg-[linear-gradient(270deg,#ff7a6b_0_10px,rgba(255,122,107,0.5)_10px_40px,rgba(255,122,107,0)_100%)]" onAnimationEnd={() => setShooting(null)} />
+          <div className="animate-shoot h-[2px] w-24 rounded-full bg-[linear-gradient(270deg,var(--color-aqua-400)_0_10px,transparent_100%)]" onAnimationEnd={() => setShooting(null)} />
         </div>
       )}
 
@@ -419,7 +425,7 @@ export function SpaceMap({
             y1={cy}
             x2={h.x}
             y2={h.y}
-            stroke="#ff7a6b"
+            style={{ stroke: 'var(--color-coral-400)' }}
             strokeWidth={2}
             opacity={!hubPick.length ? (picked ? (picked.hubs.includes(k) ? 0.9 : 0.15) : 0.7) : hubPick.includes(k) ? 0.95 : 0.12}
           />
@@ -431,10 +437,10 @@ export function SpaceMap({
           const op = (n.it.passed_at && !(picked === n) ? 0.12 : lit(n) ? 0.75 : 0.08) * (nearIds?.has(n.it.profile.id) && picked !== n ? 0.5 : 1);
           return n.hubs.length ? (
             n.hubs.map((k) => (
-              <line key={`${n.it.profile.id}-${k}`} x1={hubPts[k].x} y1={hubPts[k].y} x2={n.x} y2={n.y} stroke={color} strokeWidth={w} opacity={op} />
+              <line key={`${n.it.profile.id}-${k}`} x1={hubPts[k].x} y1={hubPts[k].y} x2={n.x} y2={n.y} style={{ stroke: color }} strokeWidth={w} opacity={op} />
             ))
           ) : (
-            <line key={n.it.profile.id} x1={cx} y1={cy} x2={n.x} y2={n.y} stroke={color} strokeWidth={1} strokeDasharray="3 5" opacity={op * 0.8} />
+            <line key={n.it.profile.id} x1={cx} y1={cy} x2={n.x} y2={n.y} style={{ stroke: color }} strokeWidth={1} strokeDasharray="3 5" opacity={op * 0.8} />
           );
         })}
       </svg>
@@ -444,7 +450,7 @@ export function SpaceMap({
         style={{ left: cx - youSize / 2, top: cy - youSize / 2, width: youSize }}
       >
         <div
-          className="overflow-hidden rounded-full bg-coral-100 ring-4 ring-coral-500 shadow-[0_0_0_9px_rgba(232,80,91,0.15),0_8px_24px_rgba(232,80,91,0.35)]"
+          className="overflow-hidden rounded-full bg-coral-100 ring-4 ring-coral-500 shadow-[0_0_0_9px_rgba(124,106,230,0.15),0_8px_24px_rgba(124,106,230,0.35)]"
           style={{ width: youSize, height: youSize }}
         >
           {myPhoto && <img src={myPhoto} alt="" className="h-full w-full object-cover" draggable={false} />}
@@ -467,7 +473,7 @@ export function SpaceMap({
               onPick(null);
             }}
             className={`absolute z-[3] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full px-3 py-1 text-sm font-semibold shadow-sm transition active:scale-95 ${
-              on ? 'bg-coral-500 text-white' : 'bg-white text-plum-700 ring-1 ring-coral-200'
+              on ? 'bg-coral-500 text-white' : 'bg-surface text-plum-700 ring-1 ring-coral-200'
             }`}
             style={{ left: hubPts[k].x, top: hubPts[k].y, opacity: !hubPick.length || on ? 1 : 0.55 }}
           >
@@ -509,8 +515,8 @@ export function SpaceMap({
                 width: s,
                 height: s,
                 boxShadow: picked
-                  ? `0 0 0 3px #fff, 0 0 0 6px #e8505b, 0 8px 20px rgba(232,80,91,0.4)`
-                  : `0 0 0 2px #fff, 0 0 0 4px ${color}, 0 4px 10px rgba(47,18,40,0.15)`,
+                  ? `0 0 0 3px var(--color-surface), 0 0 0 6px var(--color-coral-500), 0 8px 20px rgba(124,106,230,0.4)`
+                  : `0 0 0 2px var(--color-surface), 0 0 0 4px ${color}, 0 4px 10px rgba(27,28,56,0.15)`,
               }}
             >
               {p.photos[0] && <img src={p.photos[0].url} alt="" className="h-full w-full object-cover" draggable={false} />}
@@ -518,9 +524,9 @@ export function SpaceMap({
             {(showAllScores || score >= 85 || picked) && (!passed || picked) && !dim && (
               <div className="pointer-events-none absolute left-1/2 top-full mt-1.5 flex w-28 -translate-x-1/2 flex-col items-center">
                 {(showNames || picked) && (
-                  <span className="rounded-full bg-white/90 px-1.5 text-xs font-semibold leading-4 text-ink">{p.name}</span>
+                  <span className="rounded-full bg-surface/90 px-1.5 text-xs font-semibold leading-4 text-ink">{p.name}</span>
                 )}
-                <span className="mt-0.5 rounded-full bg-white/90 px-1.5 text-[11px] font-bold leading-4" style={{ color }}>
+                <span className="mt-0.5 rounded-full bg-surface/90 px-1.5 text-[11px] font-bold leading-4" style={{ color }}>
                   {score}%
                 </span>
               </div>
@@ -537,7 +543,7 @@ export function SpaceMap({
           onPick(null);
           onReset?.();
         }}
-        className="absolute bottom-3 right-3 z-10 rounded-full bg-white px-4 py-2 text-sm font-semibold text-plum-700 shadow-sm ring-1 ring-plum-100 transition active:scale-95"
+        className="absolute bottom-3 right-3 z-10 rounded-full bg-surface px-4 py-2 text-sm font-semibold text-plum-700 shadow-sm ring-1 ring-plum-100 transition active:scale-95"
       >
         Reset
       </button>
@@ -596,7 +602,7 @@ export function QuickCard({
   return (
     <section
       aria-label={`${p.name} quick look`}
-      className="animate-slide-up absolute inset-x-3 bottom-3 z-20 flex flex-col gap-3 rounded-3xl bg-white p-4 shadow-xl shadow-plum-900/15 ring-1 ring-plum-100/60"
+      className="animate-slide-up absolute inset-x-3 bottom-3 z-20 flex flex-col gap-3 rounded-3xl bg-surface p-4 shadow-xl shadow-plum-900/15 ring-1 ring-plum-100/60"
       onPointerDown={(e) => e.stopPropagation()}
     >
       <div className="flex items-center gap-3">

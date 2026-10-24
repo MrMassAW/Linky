@@ -1,24 +1,66 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-coral-50: #fff3f1;
-  --color-coral-100: #ffe1dc;
-  --color-coral-200: #ffc2b8;
-  --color-coral-400: #ff7a6b;
-  --color-coral-500: #e8505b;
-  --color-coral-600: #cf3a4a;
-  --color-plum-50: #f7eff5;
-  --color-plum-100: #ecd9e7;
-  --color-plum-500: #8b3a74;
-  --color-plum-700: #5e2550;
-  --color-plum-900: #2f1228;
-  --color-cream: #fff8f4;
-  --color-ink: #2a1f2d;
-  --color-muted: #7a6b78;
+  /* Calm palette taken from the logo: aqua to violet to orchid. "coral" is the primary accent
+     (violet) and "plum" the indigo used for text and quiet surfaces; both keep their names. */
+  --color-coral-50: #f3f1fe;
+  --color-coral-100: #e7e2fd;
+  --color-coral-200: #cfc6fa;
+  --color-coral-400: #9a8af0;
+  --color-coral-500: #7c6ae6;
+  --color-coral-600: #6753d3;
+  --color-plum-50: #f1f3fa;
+  --color-plum-100: #e1e5f2;
+  --color-plum-500: #6566a8;
+  --color-plum-700: #3d3f74;
+  --color-plum-900: #1b1c38;
+  --color-aqua-200: #c3eef7;
+  --color-aqua-400: #6fd3ea;
+  --color-aqua-500: #3bb8d6;
+  --color-orchid-200: #f2c9e6;
+  --color-orchid-400: #dc77bf;
+  --color-orchid-500: #c4509f;
+  --color-cream: #f6f7fc;
+  --color-surface: #ffffff;
+  --color-ink: #1e2036;
+  --color-muted: #6b6f8e;
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Fraunces', ui-serif, Georgia, serif;
   --font-pixel: 'Press Start 2P', ui-monospace, monospace;
   --font-retro: 'VT323', ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+/* Dark theme follows the system setting. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-coral-50: #221f3d;
+    --color-coral-100: #2d2852;
+    --color-coral-200: #463d7c;
+    --color-coral-400: #a898f5;
+    --color-coral-500: #8a77ee;
+    --color-coral-600: #b3a6fa;
+    --color-plum-50: #1f2137;
+    --color-plum-100: #2d3050;
+    --color-plum-500: #a3a6dc;
+    --color-plum-700: #cbcdf0;
+    --color-plum-900: #05060f;
+    --color-aqua-200: #1d4552;
+    --color-orchid-200: #4f2448;
+    --color-cream: #121320;
+    --color-surface: #1c1d30;
+    --color-ink: #e9eaf7;
+    --color-muted: #9a9dbd;
+    --color-emerald-50: #11302a;
+    --color-emerald-700: #6ee7b7;
+    --color-amber-50: #392a12;
+    --color-amber-200: #6b501c;
+    --color-amber-800: #fcd34d;
+    --color-sky-50: #13293a;
+  }
 }
 
 @layer base {
@@ -40,7 +82,7 @@
   input,
   textarea,
   select {
-    @apply w-full rounded-xl border border-plum-100 bg-white px-3.5 py-2.5 text-base outline-none transition focus:border-coral-400 focus:ring-2 focus:ring-coral-100;
+    @apply w-full rounded-xl border border-plum-100 bg-surface text-ink px-3.5 py-2.5 text-base outline-none transition focus:border-coral-400 focus:ring-2 focus:ring-coral-100;
   }
   input[type='checkbox'],
   input[type='radio'] {

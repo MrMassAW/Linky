@@ -44,7 +44,7 @@ export default function Admin() {
         ) : (
           <div className="space-y-3">
             {queue.data?.map((r) => (
-              <article key={r.id} className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-plum-100/60">
+              <article key={r.id} className="rounded-3xl bg-surface p-4 shadow-sm ring-1 ring-plum-100/60">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="text-lg font-semibold">{r.target.name}</h3>
                   {r.target.flagged && <Tag tone="coral">⚑ auto-flagged</Tag>}
@@ -76,7 +76,7 @@ export default function Admin() {
                       {!ph.removed && (
                         <button
                           onClick={act(() => backend.adminRemovePhoto(ph.id))}
-                          className="absolute bottom-1 left-1 right-1 rounded-lg bg-white/90 py-0.5 text-[11px] font-semibold text-coral-600"
+                          className="absolute bottom-1 left-1 right-1 rounded-lg bg-surface/90 py-0.5 text-[11px] font-semibold text-coral-600"
                         >
                           Remove
                         </button>

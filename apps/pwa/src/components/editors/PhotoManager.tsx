@@ -108,7 +108,7 @@ export function PhotoManager({ onDone, cta = 'Continue' }: { onDone?: () => void
                 </button>
                 <button
                   onClick={() => remove(p.id)}
-                  className="absolute right-1.5 top-1.5 rounded-full bg-white/90 p-1 text-plum-700 shadow"
+                  className="absolute right-1.5 top-1.5 rounded-full bg-surface/90 p-1 text-plum-700 shadow"
                   aria-label={`Remove photo ${i + 1}`}
                 >
                   <XIcon className="h-4 w-4" />
@@ -120,7 +120,7 @@ export function PhotoManager({ onDone, cta = 'Continue' }: { onDone?: () => void
                 ) : (
                   <button
                     onClick={() => makeFirst(p.id)}
-                    className="absolute bottom-1.5 left-1.5 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-plum-700"
+                    className="absolute bottom-1.5 left-1.5 rounded-full bg-surface/90 px-2 py-0.5 text-[10px] font-semibold text-plum-700"
                   >
                     Make main
                   </button>

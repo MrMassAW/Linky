@@ -15,6 +15,7 @@ const browser = await chromium.launch({
 });
 const ctx = await browser.newContext({
   viewport: { width: 390, height: 844 },
+  colorScheme: process.env.COLOR_SCHEME === 'dark' ? 'dark' : 'light',
   hasTouch: true,
   deviceScaleFactor: 2,
   permissions: ['geolocation', 'camera'],

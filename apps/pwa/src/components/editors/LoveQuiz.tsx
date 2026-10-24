@@ -79,7 +79,7 @@ export function LoveQuiz({ onDone, cta = 'Continue' }: { onDone: () => void; cta
             <button
               key={o.text}
               onClick={() => choose(o.lang)}
-              className="w-full rounded-3xl border border-plum-100 bg-white p-5 text-left text-[17px] font-medium shadow-sm transition hover:border-coral-300 active:scale-[0.99]"
+              className="w-full rounded-3xl border border-plum-100 bg-surface p-5 text-left text-[17px] font-medium shadow-sm transition hover:border-coral-300 active:scale-[0.99]"
             >
               {o.text}
             </button>

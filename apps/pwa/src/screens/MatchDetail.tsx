@@ -109,7 +109,7 @@ export default function MatchDetail() {
         {match.compatibility && <CompatBadge c={match.compatibility} />}
 
         {/* Connect */}
-        <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-plum-100/60">
+        <section className="rounded-3xl bg-surface p-4 shadow-sm ring-1 ring-plum-100/60">
           <h3 className="text-lg font-semibold">Move to your messenger</h3>
           {both ? (
             <div className="mt-2 space-y-2">
@@ -166,7 +166,7 @@ export default function MatchDetail() {
               const mine = n.sender_id === me.id;
               return (
                 <div key={n.id} className={`animate-fade-in flex ${mine ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] rounded-3xl px-4 py-3 ${mine ? 'bg-coral-500 text-white' : 'bg-white shadow-sm ring-1 ring-plum-100/60'}`}>
+                  <div className={`max-w-[85%] rounded-3xl px-4 py-3 ${mine ? 'bg-coral-500 text-white' : 'bg-surface shadow-sm ring-1 ring-plum-100/60'}`}>
                     <p className="whitespace-pre-wrap text-[15px]">{n.body}</p>
                     <p className={`mt-1 text-[10px] ${mine ? 'text-coral-100' : 'text-muted'}`}>
                       {when(n.created_at)}
@@ -181,7 +181,7 @@ export default function MatchDetail() {
               );
             })}
           </div>
-          <div className="mt-4 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-plum-100/60">
+          <div className="mt-4 rounded-3xl bg-surface p-3 shadow-sm ring-1 ring-plum-100/60">
             <textarea
               className="min-h-20 resize-none border-0 !ring-0"
               placeholder={`Write a note to ${p.name}…`}

@@ -76,7 +76,7 @@ function TabShell() {
       <main className="flex-1 overflow-y-auto pb-24">
         <Outlet />
       </main>
-      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-plum-100 bg-white/95 backdrop-blur">
+      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-plum-100 bg-surface/95 backdrop-blur">
         <ul className="mx-auto flex max-w-md">
           {TABS.map((t) => (
             <li key={t.to} className="flex-1">

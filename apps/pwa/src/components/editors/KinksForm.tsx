@@ -25,7 +25,7 @@ export function KinksForm({ onSaved }: { onSaved?: () => void }) {
     setK((x) => ({ ...x, tags: x.tags.includes(t) ? x.tags.filter((y) => y !== t) : [...x.tags, t] }));
 
   return (
-    <section className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-plum-100/60">
+    <section className="rounded-3xl bg-surface p-4 shadow-sm ring-1 ring-plum-100/60">
       <h3 className="text-lg font-semibold">Kinks &amp; BDSM <span className="text-xs font-normal text-muted">(optional, 18+)</span></h3>
       <Toggle
         checked={k.opted_in}

@@ -22,7 +22,7 @@ export default function Matches() {
           <Link
             key={m.match_id}
             to={`/matches/${m.match_id}`}
-            className="flex items-center gap-3 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-plum-100/60 transition active:scale-[0.99]"
+            className="flex items-center gap-3 rounded-3xl bg-surface p-3 shadow-sm ring-1 ring-plum-100/60 transition active:scale-[0.99]"
           >
             <img src={m.profile.photos[0]?.url} alt="" className="h-16 w-16 rounded-2xl object-cover" />
             <div className="min-w-0 flex-1">

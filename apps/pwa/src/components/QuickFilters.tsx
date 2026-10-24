@@ -57,7 +57,7 @@ function Pix({
       disabled={disabled}
       onClick={onClick}
       className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium shadow-sm transition active:scale-95 disabled:opacity-60 ${
-        on ? 'bg-coral-500 text-white' : 'bg-white text-plum-700 ring-1 ring-plum-100'
+        on ? 'bg-coral-500 text-white' : 'bg-surface text-plum-700 ring-1 ring-plum-100'
       }`}
     >
       {children}
@@ -202,7 +202,7 @@ function FilterPanel({
     <div
       role="dialog"
       aria-label="Filters"
-      className="animate-fade-in mt-3 flex max-h-[min(70vh,520px)] flex-col gap-4 overflow-y-auto rounded-3xl bg-white p-4 text-ink shadow-xl shadow-plum-900/15 ring-1 ring-plum-100/60"
+      className="animate-fade-in mt-3 flex max-h-[min(70vh,520px)] flex-col gap-4 overflow-y-auto rounded-3xl bg-surface p-4 text-ink shadow-xl shadow-plum-900/15 ring-1 ring-plum-100/60"
     >
       <Section title="Age">
         <Step k="age_min" label="from" />

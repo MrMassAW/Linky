@@ -24,7 +24,7 @@ export default function MyProfile() {
       <div className="space-y-3 px-4">
         <div className="grid gap-2">
           {links.map((l) => (
-            <Link key={l.to} to={l.to} className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-plum-100/60">
+            <Link key={l.to} to={l.to} className="flex items-center gap-3 rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-plum-100/60">
               <span className="text-2xl">{l.icon}</span>
               <span className="flex-1">
                 <span className="block font-semibold">{l.label}</span>
