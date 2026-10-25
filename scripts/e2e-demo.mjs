@@ -319,6 +319,22 @@ try {
 
   step('filters + opt-in kink section');
   await page.goto(`${BASE}/me/filters`);
+  // Age is one track with two handles: drag each handle by its thumb.
+  const minAge = page.getByRole('slider', { name: 'Minimum age' });
+  const maxAge = page.getByRole('slider', { name: 'Maximum age' });
+  const track = await minAge.boundingBox();
+  const thumbX = (v) => track.x + 12 + ((track.width - 24) * (v - 18)) / 81;
+  const drag = async (from, to) => {
+    await page.mouse.move(thumbX(from), track.y + track.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(thumbX(to), track.y + track.height / 2, { steps: 8 });
+    await page.mouse.up();
+  };
+  await drag(Number(await maxAge.inputValue()), 40);
+  await drag(Number(await minAge.inputValue()), 30);
+  const ages = [Number(await minAge.inputValue()), Number(await maxAge.inputValue())];
+  if (Math.abs(ages[0] - 30) > 1 || Math.abs(ages[1] - 40) > 1) throw new Error(`age handles: expected about 30-40, got ${ages.join('-')}`);
+  await shot('age-range');
   await page.getByRole('switch').first().click(); // opt in
   await click('curious');
   await click('Save kink preferences');

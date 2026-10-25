@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ATTRIBUTE_LABELS, INTERESTS, LANGUAGES, OPTION_LABELS } from '@linky/content';
 import type { AttributeKey, AttributeSetting, Attributes, Preferences } from '@linky/matching';
 import { useMe, useSession } from '../../state/session';
-import { Button, Chip, ErrorText, Toggle } from '../ui';
+import { Button, Chip, ErrorText, RangeSlider, Toggle } from '../ui';
 
 const SINGLE: AttributeKey[] = ['goal', 'drinking', 'cannabis', 'smoking', 'pets', 'kids_have', 'kids_want', 'religion', 'politics'];
 const OPTIONAL = new Set<AttributeKey>(['religion', 'politics']);
@@ -92,16 +92,16 @@ export function PreferenceFields({ prefs, onChange }: { prefs: Preferences; onCh
         <label>
           Age: {prefs.age_min}–{prefs.age_max}
         </label>
-        <div className="mt-1 flex items-center gap-3">
-          <input
-            type="range" min={18} max={99} value={prefs.age_min} aria-label="Minimum age"
-            onChange={(e) => onChange({ ...prefs, age_min: Math.min(Number(e.target.value), prefs.age_max) })}
-          />
-          <input
-            type="range" min={18} max={99} value={prefs.age_max} aria-label="Maximum age"
-            onChange={(e) => onChange({ ...prefs, age_max: Math.max(Number(e.target.value), prefs.age_min) })}
-          />
-        </div>
+        <RangeSlider
+          className="mt-1"
+          min={18}
+          max={99}
+          low={prefs.age_min}
+          high={prefs.age_max}
+          lowLabel="Minimum age"
+          highLabel="Maximum age"
+          onChange={(age_min, age_max) => onChange({ ...prefs, age_min, age_max })}
+        />
       </div>
       <div className="mt-3">
         <label>Distance: {anywhere ? 'Anywhere' : `up to ${prefs.distance_km} km`}</label>

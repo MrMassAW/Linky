@@ -135,10 +135,61 @@ export function Toggle({
         className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition ${checked ? 'bg-coral-500' : 'bg-plum-100'}`}
       >
         <span
-          className={`absolute top-0.5 h-6 w-6 rounded-full bg-surface shadow transition ${checked ? 'left-[22px]' : 'left-0.5'}`}
+          className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition ${checked ? 'left-[22px]' : 'left-0.5'}`}
         />
       </button>
     </label>
+  );
+}
+
+/** One track with two handles, for a min–max range. Both handles are native range inputs, so keys and screen readers work. */
+export function RangeSlider({
+  min,
+  max,
+  low,
+  high,
+  lowLabel,
+  highLabel,
+  onChange,
+  className = '',
+}: {
+  min: number;
+  max: number;
+  low: number;
+  high: number;
+  lowLabel: string;
+  highLabel: string;
+  onChange: (low: number, high: number) => void;
+  className?: string;
+}) {
+  const pct = (v: number) => ((v - min) / (max - min)) * 100;
+  return (
+    <div className={`range-dual relative h-8 ${className}`}>
+      <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-plum-100" />
+      <div
+        className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-coral-500"
+        style={{ left: `${pct(low)}%`, right: `${100 - pct(high)}%` }}
+      />
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={low}
+        aria-label={lowLabel}
+        // When both handles meet at the top end, keep the low one on top so it can still be dragged down.
+        style={{ zIndex: low >= max - 1 ? 2 : 1 }}
+        onChange={(e) => onChange(Math.min(Number(e.target.value), high), high)}
+      />
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={high}
+        aria-label={highLabel}
+        style={{ zIndex: 1 }}
+        onChange={(e) => onChange(low, Math.max(Number(e.target.value), low))}
+      />
+    </div>
   );
 }
 
